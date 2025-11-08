@@ -23,10 +23,7 @@ class ConditionChipSelector extends StatelessWidget {
         return GestureDetector(
           onTap: () => onConditionSelected(condition),
           child: Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 20,
-              vertical: 12,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             decoration: BoxDecoration(
               color: isSelected ? _accent : Colors.white10,
               borderRadius: BorderRadius.circular(8),

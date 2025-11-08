@@ -4,11 +4,7 @@ class FormLabel extends StatelessWidget {
   final String text;
   final bool isRequired;
 
-  const FormLabel({
-    super.key,
-    required this.text,
-    this.isRequired = true,
-  });
+  const FormLabel({super.key, required this.text, this.isRequired = true});
 
   @override
   Widget build(BuildContext context) {

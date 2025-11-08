@@ -120,7 +120,10 @@ class _PostBookPageState extends State<PostBookPage> {
                 const SizedBox(height: 20),
 
                 // Description (Optional)
-                const FormLabel(text: 'Description (Optional)', isRequired: false),
+                const FormLabel(
+                  text: 'Description (Optional)',
+                  isRequired: false,
+                ),
                 const SizedBox(height: 8),
                 FormTextField(
                   controller: _descriptionController,
