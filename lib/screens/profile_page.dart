@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../widgets/app_bottom_nav_bar.dart';
+import '../widgets/menu_tile.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -94,7 +95,7 @@ class ProfilePage extends StatelessWidget {
               const SizedBox(height: 40),
 
               // Menu Options
-              _MenuTile(
+              MenuTile(
                 icon: Icons.library_books_outlined,
                 title: 'My Listings',
                 onTap: () {
@@ -102,7 +103,7 @@ class ProfilePage extends StatelessWidget {
                 },
               ),
               const SizedBox(height: 12),
-              _MenuTile(
+              MenuTile(
                 icon: Icons.history,
                 title: 'Swap History',
                 onTap: () {
@@ -110,7 +111,7 @@ class ProfilePage extends StatelessWidget {
                 },
               ),
               const SizedBox(height: 12),
-              _MenuTile(
+              MenuTile(
                 icon: Icons.settings_outlined,
                 title: 'Settings',
                 onTap: () {
@@ -118,7 +119,7 @@ class ProfilePage extends StatelessWidget {
                 },
               ),
               const SizedBox(height: 12),
-              _MenuTile(
+              MenuTile(
                 icon: Icons.logout,
                 title: 'Logout',
                 isDestructive: true,
@@ -208,59 +209,6 @@ class _StatCard extends StatelessWidget {
             style: const TextStyle(color: Colors.white70, fontSize: 14),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _MenuTile extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final VoidCallback onTap;
-  final bool isDestructive;
-
-  const _MenuTile({
-    required this.icon,
-    required this.title,
-    required this.onTap,
-    this.isDestructive = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-        decoration: BoxDecoration(
-          color: Colors.white10,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              icon,
-              color: isDestructive ? Colors.red : Colors.white,
-              size: 24,
-            ),
-            const SizedBox(width: 16),
-            Text(
-              title,
-              style: TextStyle(
-                color: isDestructive ? Colors.red : Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const Spacer(),
-            Icon(
-              Icons.arrow_forward_ios,
-              color: isDestructive ? Colors.red : Colors.white60,
-              size: 16,
-            ),
-          ],
-        ),
       ),
     );
   }
