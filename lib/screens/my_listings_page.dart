@@ -182,6 +182,8 @@ class _MyListingsPageState extends State<MyListingsPage> {
         onTap: (index) {
           if (index == 0) {
             Navigator.pushNamed(context, '/browse');
+          } else if (index == 2) {
+            Navigator.pushNamed(context, '/chats');
           } else if (index == 3) {
             Navigator.pushNamed(context, '/profile');
           } else if (index == 4) {
