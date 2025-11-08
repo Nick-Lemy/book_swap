@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../widgets/app_bottom_nav_bar.dart';
+import '../widgets/empty_state_widget.dart';
+import '../widgets/chat_list_tile.dart';
 
 class ChatMessage {
   final String id;
@@ -108,11 +110,15 @@ class _ChatListPageState extends State<ChatListPage> {
         ],
       ),
       body: _conversations.isEmpty
-          ? _buildEmptyState()
+          ? const EmptyStateWidget(
+              icon: Icons.chat_bubble_outline,
+              title: 'No conversations yet',
+              subtitle: 'Start chatting by requesting a swap',
+            )
           : ListView.builder(
               itemCount: _conversations.length,
               itemBuilder: (context, index) {
-                return _ChatListTile(
+                return ChatListTile(
                   conversation: _conversations[index],
                   onTap: () {
                     Navigator.pushNamed(
@@ -141,172 +147,5 @@ class _ChatListPageState extends State<ChatListPage> {
         },
       ),
     );
-  }
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: const [
-          Icon(Icons.chat_bubble_outline, size: 80, color: Colors.white24),
-          SizedBox(height: 16),
-          Text(
-            'No conversations yet',
-            style: TextStyle(color: Colors.white60, fontSize: 18),
-          ),
-          SizedBox(height: 8),
-          Text(
-            'Start chatting by requesting a swap',
-            style: TextStyle(color: Colors.white38, fontSize: 14),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ChatListTile extends StatelessWidget {
-  final ChatConversation conversation;
-  final VoidCallback onTap;
-
-  const _ChatListTile({required this.conversation, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: const BoxDecoration(
-          border: Border(bottom: BorderSide(color: Colors.white10, width: 0.5)),
-        ),
-        child: Row(
-          children: [
-            // Avatar with online indicator
-            Stack(
-              children: [
-                CircleAvatar(
-                  radius: 28,
-                  backgroundColor: const Color(0xFFF1C64A),
-                  child: Text(
-                    conversation.userAvatar,
-                    style: const TextStyle(
-                      color: Color(0xFF0B1026),
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                if (conversation.isOnline)
-                  Positioned(
-                    right: 0,
-                    bottom: 0,
-                    child: Container(
-                      width: 16,
-                      height: 16,
-                      decoration: BoxDecoration(
-                        color: Colors.green,
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: const Color(0xFF0B1026),
-                          width: 2,
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-            const SizedBox(width: 16),
-            // Message Info
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        conversation.userName,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      Text(
-                        _getTimeAgo(conversation.lastMessageTime),
-                        style: TextStyle(
-                          color: conversation.unreadCount > 0
-                              ? const Color(0xFFF1C64A)
-                              : Colors.white38,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          conversation.lastMessage,
-                          style: TextStyle(
-                            color: conversation.unreadCount > 0
-                                ? Colors.white
-                                : Colors.white60,
-                            fontSize: 14,
-                            fontWeight: conversation.unreadCount > 0
-                                ? FontWeight.w500
-                                : FontWeight.normal,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      if (conversation.unreadCount > 0) ...[
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF1C64A),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Text(
-                            '${conversation.unreadCount}',
-                            style: const TextStyle(
-                              color: Color(0xFF0B1026),
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  String _getTimeAgo(DateTime dateTime) {
-    final difference = DateTime.now().difference(dateTime);
-    if (difference.inDays > 7) {
-      return '${dateTime.day}/${dateTime.month}/${dateTime.year}';
-    } else if (difference.inDays > 0) {
-      return '${difference.inDays}d ago';
-    } else if (difference.inHours > 0) {
-      return '${difference.inHours}h ago';
-    } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes}m ago';
-    } else {
-      return 'Just now';
-    }
   }
 }
