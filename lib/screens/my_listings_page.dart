@@ -180,9 +180,12 @@ class _MyListingsPageState extends State<MyListingsPage> {
       bottomNavigationBar: AppBottomNavBar(
         currentIndex: 1,
         onTap: (index) {
-          // TODO: Handle navigation
           if (index == 0) {
             Navigator.pushNamed(context, '/browse');
+          } else if (index == 3) {
+            Navigator.pushNamed(context, '/profile');
+          } else if (index == 4) {
+            Navigator.pushNamed(context, '/settings');
           }
         },
       ),
