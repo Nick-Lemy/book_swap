@@ -6,6 +6,11 @@ import 'package:book_swap/screens/my_listings_page.dart';
 import 'package:book_swap/screens/post_book_page.dart';
 import 'package:book_swap/screens/profile_page.dart';
 import 'package:book_swap/screens/settings_page.dart';
+import 'package:book_swap/screens/my_offers_page.dart';
+import 'package:book_swap/screens/chat_list_page.dart';
+import 'package:book_swap/screens/chat_page.dart';
+import 'package:book_swap/screens/swap_history_page.dart';
+import 'package:book_swap/screens/other_user_profile_page.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -30,6 +35,11 @@ class MyApp extends StatelessWidget {
         '/post-book': (context) => const PostBookPage(),
         '/profile': (context) => const ProfilePage(),
         '/settings': (context) => const SettingsPage(),
+        '/my-offers': (context) => const MyOffersPage(),
+        '/chats': (context) => const ChatListPage(),
+        '/chat': (context) => const ChatPage(),
+        '/swap-history': (context) => const SwapHistoryPage(),
+        '/other-user-profile': (context) => const OtherUserProfilePage(),
       },
     );
   }
