@@ -5,6 +5,7 @@ import '../widgets/category_filter_row.dart';
 import '../widgets/app_bottom_nav_bar.dart';
 import '../constants/dummy_data.dart';
 import '../models/book.dart';
+import 'book_detail_page.dart';
 
 class BrowseListingsPage extends StatefulWidget {
   const BrowseListingsPage({super.key});
@@ -102,7 +103,12 @@ class _BrowseListingsPageState extends State<BrowseListingsPage> {
                         status: book.condition,
                         timePosted: book.timeAgo,
                         onTap: () {
-                          // TODO: Navigate to listing details
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => BookDetailPage(book: book),
+                            ),
+                          );
                         },
                       );
                     },

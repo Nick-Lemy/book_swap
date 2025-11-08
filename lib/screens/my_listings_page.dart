@@ -4,6 +4,7 @@ import '../widgets/search_text_field.dart';
 import '../widgets/book_listing_card.dart';
 import '../constants/dummy_data.dart';
 import '../models/book.dart';
+import 'book_detail_page.dart';
 
 class MyListingsPage extends StatefulWidget {
   const MyListingsPage({super.key});
@@ -157,7 +158,12 @@ class _MyListingsPageState extends State<MyListingsPage> {
                         status: book.condition,
                         timePosted: book.timeAgo,
                         onTap: () {
-                          // TODO: Navigate to edit/view book details
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => BookDetailPage(book: book),
+                            ),
+                          );
                         },
                       );
                     },
