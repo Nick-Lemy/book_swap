@@ -1,4 +1,5 @@
 import 'package:book_swap/widgets/status_chip.dart';
+import 'package:book_swap/widgets/swap_status_badge.dart';
 import 'package:flutter/material.dart';
 
 class BookListingCard extends StatelessWidget {
@@ -7,6 +8,7 @@ class BookListingCard extends StatelessWidget {
   final String status;
   final String timePosted;
   final VoidCallback onTap;
+  final SwapStatusType? swapStatus;
 
   const BookListingCard({
     super.key,
@@ -15,6 +17,7 @@ class BookListingCard extends StatelessWidget {
     required this.status,
     required this.timePosted,
     required this.onTap,
+    this.swapStatus,
   });
 
   @override
@@ -32,16 +35,38 @@ class BookListingCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Book cover placeholder
-              Container(
-                width: 80,
-                height: 100,
-                decoration: BoxDecoration(
-                  color: Colors.white24,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Center(
-                  child: Icon(Icons.book, color: Colors.white54, size: 32),
-                ),
+              Stack(
+                children: [
+                  Container(
+                    width: 80,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      color: Colors.white24,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Center(
+                      child: Icon(Icons.book, color: Colors.white54, size: 32),
+                    ),
+                  ),
+                  // Swap status badge overlay
+                  if (swapStatus != null)
+                    Positioned(
+                      top: 4,
+                      right: 4,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: _getSwapStatusColor(),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          _getSwapStatusIcon(),
+                          size: 14,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                ],
               ),
               const SizedBox(width: 12),
               // Book details
@@ -69,6 +94,10 @@ class BookListingCard extends StatelessWidget {
                     Row(
                       children: [
                         StatusChip(label: status),
+                        if (swapStatus != null) ...[
+                          const SizedBox(width: 8),
+                          SwapStatusBadge(status: swapStatus!),
+                        ],
                         const Spacer(),
                         Text(
                           timePosted,
@@ -87,5 +116,29 @@ class BookListingCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Color _getSwapStatusColor() {
+    if (swapStatus == null) return Colors.transparent;
+    switch (swapStatus!) {
+      case SwapStatusType.available:
+        return Colors.green;
+      case SwapStatusType.pending:
+        return Colors.orange;
+      case SwapStatusType.swapped:
+        return Colors.grey;
+    }
+  }
+
+  IconData _getSwapStatusIcon() {
+    if (swapStatus == null) return Icons.circle;
+    switch (swapStatus!) {
+      case SwapStatusType.available:
+        return Icons.check;
+      case SwapStatusType.pending:
+        return Icons.schedule;
+      case SwapStatusType.swapped:
+        return Icons.done_all;
+    }
   }
 }
