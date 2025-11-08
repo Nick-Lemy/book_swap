@@ -36,10 +36,7 @@ class InfoTile extends StatelessWidget {
           if (value != null)
             Text(
               value!,
-              style: const TextStyle(
-                color: Colors.white60,
-                fontSize: 16,
-              ),
+              style: const TextStyle(color: Colors.white60, fontSize: 16),
             ),
           if (hasArrow) ...[
             const Icon(
