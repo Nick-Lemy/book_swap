@@ -1,12 +1,49 @@
 import 'package:book_swap/widgets/book_listing_card.dart';
 import 'package:flutter/material.dart';
 import '../widgets/search_text_field.dart';
+import '../constants/dummy_data.dart';
+import '../models/book.dart';
 
-class BrowseListingsPage extends StatelessWidget {
+class BrowseListingsPage extends StatefulWidget {
   const BrowseListingsPage({super.key});
 
+  @override
+  State<BrowseListingsPage> createState() => _BrowseListingsPageState();
+}
+
+class _BrowseListingsPageState extends State<BrowseListingsPage> {
   static const Color _bg = Color(0xFF0B1026);
   static const Color _accent = Color(0xFFF1C64A);
+
+  String selectedCategory = 'All';
+  List<Book> filteredBooks = dummyBooks;
+  String searchQuery = '';
+
+  void _filterBooks() {
+    setState(() {
+      filteredBooks = getBooksByCategory(selectedCategory);
+      if (searchQuery.isNotEmpty) {
+        filteredBooks = filteredBooks.where((book) {
+          return book.title.toLowerCase().contains(searchQuery.toLowerCase()) ||
+              book.author.toLowerCase().contains(searchQuery.toLowerCase());
+        }).toList();
+      }
+    });
+  }
+
+  void _onCategorySelected(String category) {
+    setState(() {
+      selectedCategory = category;
+      _filterBooks();
+    });
+  }
+
+  void _onSearchChanged(String query) {
+    setState(() {
+      searchQuery = query;
+      _filterBooks();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,9 +72,7 @@ class BrowseListingsPage extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: SearchTextField(
               hintText: 'Search books...',
-              onChanged: (value) {
-                // TODO: Implement search
-              },
+              onChanged: _onSearchChanged,
             ),
           ),
           // Categories
@@ -45,31 +80,42 @@ class BrowseListingsPage extends StatelessWidget {
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Row(
-              children: [
-                _CategoryChip(label: 'All', isSelected: true, onTap: () {}),
-                _CategoryChip(label: 'Data Structures', onTap: () {}),
-                _CategoryChip(label: 'Operating Systems', onTap: () {}),
-                _CategoryChip(label: 'Algorithms', onTap: () {}),
-              ],
+              children: getAllCategories()
+                  .map(
+                    (category) => _CategoryChip(
+                      label: category,
+                      isSelected: selectedCategory == category,
+                      onTap: () => _onCategorySelected(category),
+                    ),
+                  )
+                  .toList(),
             ),
           ),
           // Listings
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: 10, // Replace with actual data length
-              itemBuilder: (context, index) {
-                return BookListingCard(
-                  title: 'Data Structures',
-                  author: 'John Doe',
-                  status: index % 2 == 0 ? 'Like New' : 'Used',
-                  timePosted: '${index + 1} days ago',
-                  onTap: () {
-                    // TODO: Navigate to listing details
-                  },
-                );
-              },
-            ),
+            child: filteredBooks.isEmpty
+                ? const Center(
+                    child: Text(
+                      'No books found',
+                      style: TextStyle(color: Colors.white70, fontSize: 16),
+                    ),
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: filteredBooks.length,
+                    itemBuilder: (context, index) {
+                      final book = filteredBooks[index];
+                      return BookListingCard(
+                        title: book.title,
+                        author: book.author,
+                        status: book.condition,
+                        timePosted: book.timeAgo,
+                        onTap: () {
+                          // TODO: Navigate to listing details
+                        },
+                      );
+                    },
+                  ),
           ),
         ],
       ),
@@ -93,6 +139,11 @@ class BrowseListingsPage extends StatelessWidget {
             icon: Icon(Icons.chat_bubble_outline),
             activeIcon: Icon(Icons.chat_bubble),
             label: 'Chats',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.settings_outlined),
+            activeIcon: Icon(Icons.settings),
+            label: 'Settings',
           ),
         ],
       ),
