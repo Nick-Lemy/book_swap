@@ -72,7 +72,7 @@ class LoginPage extends StatelessWidget {
               PrimaryButton(
                 text: 'Login',
                 onPressed: () {
-                  // TODO: Implement login
+                  Navigator.pushNamed(context, '/browse');
                 },
               ),
               const SizedBox(height: 24),

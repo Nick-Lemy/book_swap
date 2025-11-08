@@ -1,6 +1,7 @@
 import 'package:book_swap/screens/login_page.dart';
 import 'package:book_swap/screens/signup_page.dart';
 import 'package:book_swap/screens/welcome_page.dart';
+import 'package:book_swap/screens/browse_listings_page.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -17,9 +18,10 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       initialRoute: '/',
       routes: {
-        '/': (context) => WelcomeScreen(),
-        '/login': (context) => LoginPage(),
-        '/signup': (context) => SignUpPage(),
+        '/': (context) => const WelcomeScreen(),
+        '/login': (context) => const LoginPage(),
+        '/signup': (context) => const SignUpPage(),
+        '/browse': (context) => const BrowseListingsPage(),
       },
     );
   }
