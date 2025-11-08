@@ -241,10 +241,7 @@ class _PostBookPageState extends State<PostBookPage> {
                 const SizedBox(height: 40),
 
                 // Post Button
-                PrimaryButton(
-                  text: 'Post',
-                  onPressed: _handlePost,
-                ),
+                PrimaryButton(text: 'Post', onPressed: _handlePost),
                 const SizedBox(height: 20),
               ],
             ),
