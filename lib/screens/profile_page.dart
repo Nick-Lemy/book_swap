@@ -104,10 +104,18 @@ class ProfilePage extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               MenuTile(
+                icon: Icons.swap_horiz,
+                title: 'My Offers',
+                onTap: () {
+                  Navigator.pushNamed(context, '/my-offers');
+                },
+              ),
+              const SizedBox(height: 12),
+              MenuTile(
                 icon: Icons.history,
                 title: 'Swap History',
                 onTap: () {
-                  // TODO: Navigate to swap history
+                  Navigator.pushNamed(context, '/swap-history');
                 },
               ),
               const SizedBox(height: 12),
