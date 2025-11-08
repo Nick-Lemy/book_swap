@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import '../widgets/primary_button.dart';
+import '../widgets/form_label.dart';
+import '../widgets/form_text_field.dart';
+import '../widgets/condition_chip_selector.dart';
 
 class PostBookPage extends StatefulWidget {
   const PostBookPage({super.key});
@@ -10,7 +13,6 @@ class PostBookPage extends StatefulWidget {
 
 class _PostBookPageState extends State<PostBookPage> {
   static const Color _bg = Color(0xFF0B1026);
-  static const Color _accent = Color(0xFFF1C64A);
 
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
@@ -73,28 +75,11 @@ class _PostBookPageState extends State<PostBookPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Book Title
-                const Text(
-                  'Book Title',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
+                const FormLabel(text: 'Book Title'),
                 const SizedBox(height: 8),
-                TextFormField(
+                FormTextField(
                   controller: _titleController,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: InputDecoration(
-                    hintText: 'Enter book title',
-                    hintStyle: const TextStyle(color: Colors.white60),
-                    fillColor: Colors.white10,
-                    filled: true,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
+                  hintText: 'Enter book title',
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter a book title';
@@ -105,28 +90,11 @@ class _PostBookPageState extends State<PostBookPage> {
                 const SizedBox(height: 20),
 
                 // Author
-                const Text(
-                  'Author',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
+                const FormLabel(text: 'Author'),
                 const SizedBox(height: 8),
-                TextFormField(
+                FormTextField(
                   controller: _authorController,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: InputDecoration(
-                    hintText: 'Enter author name',
-                    hintStyle: const TextStyle(color: Colors.white60),
-                    fillColor: Colors.white10,
-                    filled: true,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
+                  hintText: 'Enter author name',
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter the author name';
@@ -137,28 +105,11 @@ class _PostBookPageState extends State<PostBookPage> {
                 const SizedBox(height: 20),
 
                 // Category
-                const Text(
-                  'Category',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
+                const FormLabel(text: 'Category'),
                 const SizedBox(height: 8),
-                TextFormField(
+                FormTextField(
                   controller: _categoryController,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: InputDecoration(
-                    hintText: 'e.g., Data Structures, Algorithms',
-                    hintStyle: const TextStyle(color: Colors.white60),
-                    fillColor: Colors.white10,
-                    filled: true,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
+                  hintText: 'e.g., Data Structures, Algorithms',
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter a category';
@@ -169,72 +120,26 @@ class _PostBookPageState extends State<PostBookPage> {
                 const SizedBox(height: 20),
 
                 // Description (Optional)
-                const Text(
-                  'Description (Optional)',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
+                const FormLabel(text: 'Description (Optional)', isRequired: false),
                 const SizedBox(height: 8),
-                TextFormField(
+                FormTextField(
                   controller: _descriptionController,
-                  style: const TextStyle(color: Colors.white),
+                  hintText: 'Describe the book condition, notes, etc.',
                   maxLines: 3,
-                  decoration: InputDecoration(
-                    hintText: 'Describe the book condition, notes, etc.',
-                    hintStyle: const TextStyle(color: Colors.white60),
-                    fillColor: Colors.white10,
-                    filled: true,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
                 ),
                 const SizedBox(height: 20),
 
                 // Condition
-                const Text(
-                  'Condition',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
+                const FormLabel(text: 'Condition'),
                 const SizedBox(height: 12),
-                Wrap(
-                  spacing: 12,
-                  runSpacing: 12,
-                  children: conditions.map((condition) {
-                    final isSelected = selectedCondition == condition;
-                    return GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          selectedCondition = condition;
-                        });
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 12,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isSelected ? _accent : Colors.white10,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          condition,
-                          style: TextStyle(
-                            color: isSelected ? Colors.black87 : Colors.white,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                    );
-                  }).toList(),
+                ConditionChipSelector(
+                  conditions: conditions,
+                  selectedCondition: selectedCondition,
+                  onConditionSelected: (condition) {
+                    setState(() {
+                      selectedCondition = condition;
+                    });
+                  },
                 ),
                 const SizedBox(height: 40),
 
