@@ -53,13 +53,7 @@ class _MyListingsPageState extends State<MyListingsPage> {
   }
 
   void _addNewBook() {
-    // TODO: Navigate to add book page
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Add new book feature coming soon!'),
-        backgroundColor: _accent,
-      ),
-    );
+    Navigator.pushNamed(context, '/post-book');
   }
 
   @override
