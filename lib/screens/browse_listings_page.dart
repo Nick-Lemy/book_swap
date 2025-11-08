@@ -1,6 +1,8 @@
 import 'package:book_swap/widgets/book_listing_card.dart';
 import 'package:flutter/material.dart';
 import '../widgets/search_text_field.dart';
+import '../widgets/category_filter_row.dart';
+import '../widgets/app_bottom_nav_bar.dart';
 import '../constants/dummy_data.dart';
 import '../models/book.dart';
 
@@ -13,7 +15,6 @@ class BrowseListingsPage extends StatefulWidget {
 
 class _BrowseListingsPageState extends State<BrowseListingsPage> {
   static const Color _bg = Color(0xFF0B1026);
-  static const Color _accent = Color(0xFFF1C64A);
 
   String selectedCategory = 'All';
   List<Book> filteredBooks = dummyBooks;
@@ -76,20 +77,10 @@ class _BrowseListingsPageState extends State<BrowseListingsPage> {
             ),
           ),
           // Categories
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              children: getAllCategories()
-                  .map(
-                    (category) => _CategoryChip(
-                      label: category,
-                      isSelected: selectedCategory == category,
-                      onTap: () => _onCategorySelected(category),
-                    ),
-                  )
-                  .toList(),
-            ),
+          CategoryFilterRow(
+            categories: getAllCategories(),
+            selectedCategory: selectedCategory,
+            onCategorySelected: _onCategorySelected,
           ),
           // Listings
           Expanded(
@@ -119,75 +110,11 @@ class _BrowseListingsPageState extends State<BrowseListingsPage> {
           ),
         ],
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Colors.black12,
-        selectedItemColor: _accent,
-        unselectedItemColor: Colors.white60,
-        type: BottomNavigationBarType.fixed,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.list_alt_outlined),
-            activeIcon: Icon(Icons.list_alt),
-            label: 'My Listings',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.chat_bubble_outline),
-            activeIcon: Icon(Icons.chat_bubble),
-            label: 'Chats',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            activeIcon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings_outlined),
-            activeIcon: Icon(Icons.settings),
-            label: 'Settings',
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _CategoryChip extends StatelessWidget {
-  final String label;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  const _CategoryChip({
-    required this.label,
-    this.isSelected = false,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 8),
-      child: Material(
-        color: isSelected ? Color(0xFFF1C64A) : Colors.white10,
-        borderRadius: BorderRadius.circular(20),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(20),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Text(
-              label,
-              style: TextStyle(
-                color: isSelected ? Colors.black87 : Colors.white,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-        ),
+      bottomNavigationBar: AppBottomNavBar(
+        currentIndex: 0,
+        onTap: (index) {
+          // TODO: Handle navigation
+        },
       ),
     );
   }
