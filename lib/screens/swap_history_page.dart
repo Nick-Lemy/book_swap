@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/book.dart';
 import '../constants/dummy_data.dart';
+import '../widgets/empty_state_widget.dart';
 
 class SwapHistoryItem {
   final String id;
@@ -67,7 +68,11 @@ class SwapHistoryPage extends StatelessWidget {
         ),
       ),
       body: swapHistory.isEmpty
-          ? _buildEmptyState()
+          ? const EmptyStateWidget(
+              icon: Icons.history,
+              title: 'No swap history yet',
+              subtitle: 'Your completed swaps will appear here',
+            )
           : ListView.builder(
               padding: const EdgeInsets.all(16),
               itemCount: swapHistory.length,
@@ -75,27 +80,6 @@ class SwapHistoryPage extends StatelessWidget {
                 return _SwapHistoryCard(item: swapHistory[index]);
               },
             ),
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: const [
-          Icon(Icons.history, size: 80, color: Colors.white24),
-          SizedBox(height: 16),
-          Text(
-            'No swap history yet',
-            style: TextStyle(color: Colors.white60, fontSize: 18),
-          ),
-          SizedBox(height: 8),
-          Text(
-            'Your completed swaps will appear here',
-            style: TextStyle(color: Colors.white38, fontSize: 14),
-          ),
-        ],
-      ),
     );
   }
 }
