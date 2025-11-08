@@ -249,7 +249,7 @@ class BookDetailPage extends StatelessWidget {
               Expanded(
                 child: OutlinedButton(
                   onPressed: () {
-                    // TODO: Implement message owner
+                    Navigator.pushNamed(context, '/chat');
                   },
                   style: OutlinedButton.styleFrom(
                     side: BorderSide(color: _accent, width: 2),
@@ -273,11 +273,46 @@ class BookDetailPage extends StatelessWidget {
                 child: PrimaryButton(
                   text: 'Request Swap',
                   onPressed: () {
-                    // TODO: Implement request swap
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Swap request sent!'),
-                        backgroundColor: Colors.green,
+                    // Show confirmation dialog
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        backgroundColor: const Color(0xFF1A1F3A),
+                        title: const Text(
+                          'Request Swap',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        content: Text(
+                          'Send a swap request for "${book.title}"?',
+                          style: const TextStyle(color: Colors.white70),
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text(
+                              'Cancel',
+                              style: TextStyle(color: Colors.white60),
+                            ),
+                          ),
+                          ElevatedButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Swap request sent!'),
+                                  backgroundColor: Colors.green,
+                                ),
+                              );
+                              // Navigate to My Offers page
+                              Navigator.pushNamed(context, '/my-offers');
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: _accent,
+                              foregroundColor: Colors.black87,
+                            ),
+                            child: const Text('Send Request'),
+                          ),
+                        ],
                       ),
                     );
                   },
