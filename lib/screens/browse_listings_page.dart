@@ -141,6 +141,11 @@ class _BrowseListingsPageState extends State<BrowseListingsPage> {
             label: 'Chats',
           ),
           BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline),
+            activeIcon: Icon(Icons.person),
+            label: 'Profile',
+          ),
+          BottomNavigationBarItem(
             icon: Icon(Icons.settings_outlined),
             activeIcon: Icon(Icons.settings),
             label: 'Settings',
