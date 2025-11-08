@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../screens/chat_list_page.dart';
+import '../models/chat.dart';
 import 'user_avatar_with_status.dart';
 import 'unread_badge.dart';
 

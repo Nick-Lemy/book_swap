@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'chat_list_page.dart';
+import '../models/chat.dart';
 import '../widgets/message_bubble.dart';
 import '../widgets/user_avatar_with_status.dart';
 

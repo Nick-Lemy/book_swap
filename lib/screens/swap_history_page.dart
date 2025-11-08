@@ -1,23 +1,7 @@
 import 'package:flutter/material.dart';
-import '../models/book.dart';
+import '../models/swap_history.dart';
 import '../constants/dummy_data.dart';
 import '../widgets/empty_state_widget.dart';
-
-class SwapHistoryItem {
-  final String id;
-  final Book book;
-  final String swappedWith;
-  final DateTime swapDate;
-  final String myBookTitle;
-
-  SwapHistoryItem({
-    required this.id,
-    required this.book,
-    required this.swappedWith,
-    required this.swapDate,
-    required this.myBookTitle,
-  });
-}
 
 class SwapHistoryPage extends StatelessWidget {
   const SwapHistoryPage({super.key});

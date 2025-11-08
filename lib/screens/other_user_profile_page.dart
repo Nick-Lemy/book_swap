@@ -1,28 +1,7 @@
 import 'package:flutter/material.dart';
+import '../models/user_profile.dart';
 import '../constants/dummy_data.dart';
 import '../widgets/book_listing_card.dart';
-
-class UserProfile {
-  final String id;
-  final String name;
-  final String email;
-  final String avatar;
-  final int totalListings;
-  final int completedSwaps;
-  final DateTime memberSince;
-  final double rating;
-
-  UserProfile({
-    required this.id,
-    required this.name,
-    required this.email,
-    required this.avatar,
-    required this.totalListings,
-    required this.completedSwaps,
-    required this.memberSince,
-    required this.rating,
-  });
-}
 
 class OtherUserProfilePage extends StatelessWidget {
   final UserProfile? userProfile;

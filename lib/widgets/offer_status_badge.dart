@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../screens/my_offers_page.dart';
+import '../models/swap_offer.dart';
 
 class OfferStatusBadge extends StatelessWidget {
   final SwapStatus status;
