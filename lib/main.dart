@@ -2,6 +2,7 @@ import 'package:book_swap/screens/login_page.dart';
 import 'package:book_swap/screens/signup_page.dart';
 import 'package:book_swap/screens/welcome_page.dart';
 import 'package:book_swap/screens/browse_listings_page.dart';
+import 'package:book_swap/screens/my_listings_page.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -22,6 +23,7 @@ class MyApp extends StatelessWidget {
         '/login': (context) => const LoginPage(),
         '/signup': (context) => const SignUpPage(),
         '/browse': (context) => const BrowseListingsPage(),
+        '/my-listings': (context) => const MyListingsPage(),
       },
     );
   }

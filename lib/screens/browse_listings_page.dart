@@ -113,7 +113,9 @@ class _BrowseListingsPageState extends State<BrowseListingsPage> {
       bottomNavigationBar: AppBottomNavBar(
         currentIndex: 0,
         onTap: (index) {
-          // TODO: Handle navigation
+          if (index == 1) {
+            Navigator.pushNamed(context, '/my-listings');
+          }
         },
       ),
     );
