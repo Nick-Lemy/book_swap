@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'chat_list_page.dart';
+import '../widgets/message_bubble.dart';
+import '../widgets/user_avatar_with_status.dart';
 
 class ChatPage extends StatefulWidget {
   final ChatConversation? conversation;
@@ -121,38 +123,10 @@ class _ChatPageState extends State<ChatPage> {
         ),
         title: Row(
           children: [
-            Stack(
-              children: [
-                CircleAvatar(
-                  radius: 20,
-                  backgroundColor: const Color(0xFFF1C64A),
-                  child: Text(
-                    conversation.userAvatar,
-                    style: const TextStyle(
-                      color: Color(0xFF0B1026),
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                if (conversation.isOnline)
-                  Positioned(
-                    right: 0,
-                    bottom: 0,
-                    child: Container(
-                      width: 12,
-                      height: 12,
-                      decoration: BoxDecoration(
-                        color: Colors.green,
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: const Color(0xFF0B1026),
-                          width: 2,
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
+            UserAvatarWithStatus(
+              userInitial: conversation.userAvatar,
+              isOnline: conversation.isOnline,
+              radius: 20,
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -207,7 +181,12 @@ class _ChatPageState extends State<ChatPage> {
                 return Column(
                   children: [
                     if (showTimestamp) _buildTimestamp(message.timestamp),
-                    _MessageBubble(message: message),
+                    MessageBubble(
+                      text: message.text,
+                      isMe: message.isMe,
+                      timestamp:
+                          '${message.timestamp.hour}:${message.timestamp.minute.toString().padLeft(2, '0')}',
+                    ),
                   ],
                 );
               },
@@ -289,56 +268,5 @@ class _ChatPageState extends State<ChatPage> {
     } else {
       return '${timestamp.day}/${timestamp.month}/${timestamp.year}';
     }
-  }
-}
-
-class _MessageBubble extends StatelessWidget {
-  final ChatMessage message;
-
-  const _MessageBubble({required this.message});
-
-  @override
-  Widget build(BuildContext context) {
-    return Align(
-      alignment: message.isMe ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 8),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        constraints: BoxConstraints(
-          maxWidth: MediaQuery.of(context).size.width * 0.7,
-        ),
-        decoration: BoxDecoration(
-          color: message.isMe ? const Color(0xFFF1C64A) : Colors.white10,
-          borderRadius: BorderRadius.only(
-            topLeft: const Radius.circular(16),
-            topRight: const Radius.circular(16),
-            bottomLeft: Radius.circular(message.isMe ? 16 : 4),
-            bottomRight: Radius.circular(message.isMe ? 4 : 16),
-          ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              message.text,
-              style: TextStyle(
-                color: message.isMe ? const Color(0xFF0B1026) : Colors.white,
-                fontSize: 15,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              '${message.timestamp.hour}:${message.timestamp.minute.toString().padLeft(2, '0')}',
-              style: TextStyle(
-                color: message.isMe
-                    ? const Color(0xFF0B1026).withOpacity(0.6)
-                    : Colors.white38,
-                fontSize: 11,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }
