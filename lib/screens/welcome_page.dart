@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/primary_button.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
@@ -70,24 +71,9 @@ class WelcomeScreen extends StatelessWidget {
               style: TextStyle(color: Colors.white70, fontSize: 13),
             ),
             // const SizedBox(height: 22),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {},
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _accent,
-                  foregroundColor: Colors.black87,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  elevation: 0,
-                ),
-                child: const Text(
-                  'Sign In',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                ),
-              ),
+            PrimaryButton(
+              text: 'Sign In',
+              onPressed: () => Navigator.pushNamed(context, '/signup'),
             ),
             const SizedBox(height: 6),
           ],
