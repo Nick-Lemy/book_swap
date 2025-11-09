@@ -176,6 +176,7 @@ class BookService {
       id: doc.id,
       title: data['title'] ?? '',
       author: data['author'] ?? '',
+      ownerId: data['ownerId'] ?? '',
       owner: data['ownerName'] ?? '',
       ownerEmail: data['ownerEmail'] ?? '',
       category: data['category'] ?? '',

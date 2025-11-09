@@ -12,8 +12,13 @@ import 'package:book_swap/screens/chat_page.dart';
 import 'package:book_swap/screens/swap_history_page.dart';
 import 'package:book_swap/screens/other_user_profile_page.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+import 'services/auth_service.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const MyApp());
 }
 
@@ -25,9 +30,9 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'BookSwap',
       debugShowCheckedModeBanner: false,
-      initialRoute: '/',
+      home: const AuthWrapper(),
       routes: {
-        '/': (context) => const WelcomeScreen(),
+        '/welcome': (context) => const WelcomeScreen(),
         '/login': (context) => const LoginPage(),
         '/signup': (context) => const SignUpPage(),
         '/browse': (context) => const BrowseListingsPage(),
@@ -40,6 +45,38 @@ class MyApp extends StatelessWidget {
         '/chat': (context) => const ChatPage(),
         '/swap-history': (context) => const SwapHistoryPage(),
         '/other-user-profile': (context) => const OtherUserProfilePage(),
+      },
+    );
+  }
+}
+
+class AuthWrapper extends StatelessWidget {
+  const AuthWrapper({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final AuthService authService = AuthService();
+
+    return StreamBuilder(
+      stream: authService.authStateChanges,
+      builder: (context, snapshot) {
+        // Show loading while checking auth state
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            backgroundColor: Color(0xFF0B1026),
+            body: Center(
+              child: CircularProgressIndicator(color: Color(0xFFF1C64A)),
+            ),
+          );
+        }
+
+        // User is signed in, go to browse
+        if (snapshot.hasData) {
+          return const BrowseListingsPage();
+        }
+
+        // User is not signed in, show welcome
+        return const WelcomeScreen();
       },
     );
   }

@@ -2,6 +2,7 @@ class Book {
   final String id;
   final String title;
   final String author;
+  final String ownerId;
   final String owner;
   final String ownerEmail;
   final String category;
@@ -15,6 +16,7 @@ class Book {
     required this.id,
     required this.title,
     required this.author,
+    required this.ownerId,
     required this.owner,
     required this.ownerEmail,
     required this.category,
@@ -45,6 +47,7 @@ class Book {
     String? id,
     String? title,
     String? author,
+    String? ownerId,
     String? owner,
     String? ownerEmail,
     String? category,
@@ -58,6 +61,7 @@ class Book {
       id: id ?? this.id,
       title: title ?? this.title,
       author: author ?? this.author,
+      ownerId: ownerId ?? this.ownerId,
       owner: owner ?? this.owner,
       ownerEmail: ownerEmail ?? this.ownerEmail,
       category: category ?? this.category,
