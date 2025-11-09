@@ -2,11 +2,22 @@ import 'package:flutter/material.dart';
 import '../models/chat.dart';
 import '../widgets/message_bubble.dart';
 import '../widgets/user_avatar_with_status.dart';
+import '../services/chat_service.dart';
+import '../services/auth_service.dart';
 
 class ChatPage extends StatefulWidget {
-  final ChatConversation? conversation;
+  final String conversationId;
+  final String otherUserId;
+  final String otherUserName;
+  final String otherUserAvatar;
 
-  const ChatPage({super.key, this.conversation});
+  const ChatPage({
+    super.key,
+    required this.conversationId,
+    required this.otherUserId,
+    required this.otherUserName,
+    required this.otherUserAvatar,
+  });
 
   @override
   State<ChatPage> createState() => _ChatPageState();
@@ -15,54 +26,23 @@ class ChatPage extends StatefulWidget {
 class _ChatPageState extends State<ChatPage> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  final List<ChatMessage> _messages = [];
+  final ChatService _chatService = ChatService();
+  final AuthService _authService = AuthService();
 
   @override
   void initState() {
     super.initState();
-    _loadDummyMessages();
+    _markMessagesAsRead();
   }
 
-  void _loadDummyMessages() {
-    // Dummy messages for the conversation
-    _messages.addAll([
-      ChatMessage(
-        id: '1',
-        text: 'Hi! I\'m interested in your Data Structures book.',
-        timestamp: DateTime.now().subtract(const Duration(hours: 2)),
-        isMe: false,
-      ),
-      ChatMessage(
-        id: '2',
-        text: 'Hello! Yes, it\'s still available.',
-        timestamp: DateTime.now().subtract(
-          const Duration(hours: 1, minutes: 55),
-        ),
-        isMe: true,
-      ),
-      ChatMessage(
-        id: '3',
-        text: 'Great! What condition is it in?',
-        timestamp: DateTime.now().subtract(
-          const Duration(hours: 1, minutes: 50),
-        ),
-        isMe: false,
-      ),
-      ChatMessage(
-        id: '4',
-        text: 'It\'s in Like New condition. I only used it for one semester.',
-        timestamp: DateTime.now().subtract(
-          const Duration(hours: 1, minutes: 45),
-        ),
-        isMe: true,
-      ),
-      ChatMessage(
-        id: '5',
-        text: 'Perfect! Is the book still available?',
-        timestamp: DateTime.now().subtract(const Duration(minutes: 5)),
-        isMe: false,
-      ),
-    ]);
+  void _markMessagesAsRead() async {
+    final currentUser = _authService.currentUser;
+    if (currentUser != null) {
+      await _chatService.markMessagesAsRead(
+        widget.conversationId,
+        currentUser.uid,
+      );
+    }
   }
 
   @override
@@ -72,45 +52,46 @@ class _ChatPageState extends State<ChatPage> {
     super.dispose();
   }
 
-  void _sendMessage() {
+  void _sendMessage() async {
     if (_messageController.text.trim().isEmpty) return;
 
-    setState(() {
-      _messages.add(
-        ChatMessage(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
-          text: _messageController.text.trim(),
-          timestamp: DateTime.now(),
-          isMe: true,
-        ),
-      );
-    });
+    final currentUser = _authService.currentUser;
+    if (currentUser == null) return;
 
+    final messageText = _messageController.text.trim();
     _messageController.clear();
 
-    // Scroll to bottom
-    Future.delayed(const Duration(milliseconds: 100), () {
-      if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-        );
-      }
-    });
+    try {
+      await _chatService.sendMessage(
+        conversationId: widget.conversationId,
+        senderId: currentUser.uid,
+        receiverId: widget.otherUserId,
+        message: messageText,
+      );
+
+      // Scroll to bottom
+      Future.delayed(const Duration(milliseconds: 300), () {
+        if (_scrollController.hasClients) {
+          _scrollController.animateTo(
+            0,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          );
+        }
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error sending message: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final conversation =
-        widget.conversation ??
-        ChatConversation(
-          id: '1',
-          userName: 'User',
-          userAvatar: 'U',
-          lastMessage: '',
-          lastMessageTime: DateTime.now(),
-        );
+    final currentUser = _authService.currentUser;
 
     return Scaffold(
       backgroundColor: const Color(0xFF0B1026),
@@ -124,8 +105,8 @@ class _ChatPageState extends State<ChatPage> {
         title: Row(
           children: [
             UserAvatarWithStatus(
-              userInitial: conversation.userAvatar,
-              isOnline: conversation.isOnline,
+              userInitial: widget.otherUserAvatar,
+              isOnline: false, // TODO: Implement online status
               radius: 20,
             ),
             const SizedBox(width: 12),
@@ -134,18 +115,13 @@ class _ChatPageState extends State<ChatPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    conversation.userName,
+                    widget.otherUserName,
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  if (conversation.isOnline)
-                    const Text(
-                      'Online',
-                      style: TextStyle(color: Colors.green, fontSize: 12),
-                    ),
                 ],
               ),
             ),
@@ -162,32 +138,64 @@ class _ChatPageState extends State<ChatPage> {
       ),
       body: Column(
         children: [
-          // Messages List
+          // Messages List with StreamBuilder
           Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.all(16),
-              itemCount: _messages.length,
-              itemBuilder: (context, index) {
-                final message = _messages[index];
-                final showTimestamp =
-                    index == 0 ||
-                    _messages[index - 1].timestamp
-                            .difference(message.timestamp)
-                            .inMinutes
-                            .abs() >
-                        30;
+            child: StreamBuilder<List<ChatMessage>>(
+              stream: _chatService.getMessages(widget.conversationId),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
 
-                return Column(
-                  children: [
-                    if (showTimestamp) _buildTimestamp(message.timestamp),
-                    MessageBubble(
-                      text: message.text,
-                      isMe: message.isMe,
-                      timestamp:
-                          '${message.timestamp.hour}:${message.timestamp.minute.toString().padLeft(2, '0')}',
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Text(
+                      'Error loading messages: ${snapshot.error}',
+                      style: const TextStyle(color: Colors.white),
                     ),
-                  ],
+                  );
+                }
+
+                final messages = snapshot.data ?? [];
+
+                if (messages.isEmpty) {
+                  return const Center(
+                    child: Text(
+                      'No messages yet. Start the conversation!',
+                      style: TextStyle(color: Colors.white60),
+                    ),
+                  );
+                }
+
+                return ListView.builder(
+                  controller: _scrollController,
+                  padding: const EdgeInsets.all(16),
+                  reverse: true, // Messages ordered descending from Firestore
+                  itemCount: messages.length,
+                  itemBuilder: (context, index) {
+                    final message = messages[index];
+                    final showTimestamp =
+                        index == messages.length - 1 ||
+                        messages[index + 1].timestamp
+                                .difference(message.timestamp)
+                                .inMinutes
+                                .abs() >
+                            30;
+
+                    return Column(
+                      children: [
+                        MessageBubble(
+                          text: message.message,
+                          isMe:
+                              currentUser != null &&
+                              message.senderId == currentUser.uid,
+                          timestamp:
+                              '${message.timestamp.hour}:${message.timestamp.minute.toString().padLeft(2, '0')}',
+                        ),
+                        if (showTimestamp) _buildTimestamp(message.timestamp),
+                      ],
+                    );
+                  },
                 );
               },
             ),

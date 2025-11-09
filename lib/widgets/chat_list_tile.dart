@@ -26,8 +26,10 @@ class ChatListTile extends StatelessWidget {
           children: [
             // Avatar with online indicator
             UserAvatarWithStatus(
-              userInitial: conversation.userAvatar,
-              isOnline: conversation.isOnline,
+              userInitial: conversation.otherUserAvatar.isNotEmpty
+                  ? conversation.otherUserAvatar[0].toUpperCase()
+                  : 'U',
+              isOnline: conversation.otherUserOnline,
             ),
             const SizedBox(width: 16),
             // Message Info
@@ -39,7 +41,7 @@ class ChatListTile extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        conversation.userName,
+                        conversation.otherUserName,
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 16,

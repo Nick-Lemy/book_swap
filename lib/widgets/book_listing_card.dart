@@ -9,6 +9,7 @@ class BookListingCard extends StatelessWidget {
   final String timePosted;
   final VoidCallback onTap;
   final SwapStatusType? swapStatus;
+  final String? imageUrl;
 
   const BookListingCard({
     super.key,
@@ -18,6 +19,7 @@ class BookListingCard extends StatelessWidget {
     required this.timePosted,
     required this.onTap,
     this.swapStatus,
+    this.imageUrl,
   });
 
   @override
@@ -44,9 +46,42 @@ class BookListingCard extends StatelessWidget {
                       color: Colors.white24,
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Center(
-                      child: Icon(Icons.book, color: Colors.white54, size: 32),
-                    ),
+                    child: imageUrl != null && imageUrl!.isNotEmpty
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.network(
+                              imageUrl!,
+                              width: 80,
+                              height: 100,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return const Center(
+                                  child: Icon(
+                                    Icons.book,
+                                    color: Colors.white54,
+                                    size: 32,
+                                  ),
+                                );
+                              },
+                              loadingBuilder:
+                                  (context, child, loadingProgress) {
+                                    if (loadingProgress == null) return child;
+                                    return const Center(
+                                      child: CircularProgressIndicator(
+                                        color: Colors.white54,
+                                        strokeWidth: 2,
+                                      ),
+                                    );
+                                  },
+                            ),
+                          )
+                        : const Center(
+                            child: Icon(
+                              Icons.book,
+                              color: Colors.white54,
+                              size: 32,
+                            ),
+                          ),
                   ),
                   // Swap status badge overlay
                   if (swapStatus != null)

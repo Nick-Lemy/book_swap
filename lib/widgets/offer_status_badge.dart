@@ -34,6 +34,8 @@ class OfferStatusBadge extends StatelessWidget {
         return Colors.green;
       case SwapStatus.rejected:
         return Colors.red;
+      case SwapStatus.cancelled:
+        return Colors.grey;
     }
   }
 
@@ -45,6 +47,8 @@ class OfferStatusBadge extends StatelessWidget {
         return 'Accepted';
       case SwapStatus.rejected:
         return 'Rejected';
+      case SwapStatus.cancelled:
+        return 'Cancelled';
     }
   }
 }

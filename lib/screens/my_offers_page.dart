@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import '../models/swap_offer.dart';
-import '../constants/dummy_data.dart';
 import '../widgets/app_bottom_nav_bar.dart';
 import '../widgets/empty_state_widget.dart';
 import '../widgets/offer_card.dart';
+import '../services/swap_service.dart';
+import '../services/auth_service.dart';
+import '../services/book_service.dart';
 
 class MyOffersPage extends StatefulWidget {
   const MyOffersPage({super.key});
@@ -15,53 +17,9 @@ class MyOffersPage extends StatefulWidget {
 class _MyOffersPageState extends State<MyOffersPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-
-  // Dummy data for swap offers
-  final List<SwapOffer> _incomingOffers = [
-    SwapOffer(
-      id: '1',
-      book: dummyBooks[0],
-      fromUser: 'John Smith',
-      toUser: 'Me',
-      status: SwapStatus.pending,
-      createdAt: DateTime.now().subtract(const Duration(hours: 2)),
-    ),
-    SwapOffer(
-      id: '2',
-      book: dummyBooks[2],
-      fromUser: 'Alice Johnson',
-      toUser: 'Me',
-      status: SwapStatus.pending,
-      createdAt: DateTime.now().subtract(const Duration(days: 1)),
-    ),
-  ];
-
-  final List<SwapOffer> _outgoingOffers = [
-    SwapOffer(
-      id: '3',
-      book: dummyBooks[1],
-      fromUser: 'Me',
-      toUser: 'Bob Wilson',
-      status: SwapStatus.pending,
-      createdAt: DateTime.now().subtract(const Duration(hours: 5)),
-    ),
-    SwapOffer(
-      id: '4',
-      book: dummyBooks[3],
-      fromUser: 'Me',
-      toUser: 'Carol Davis',
-      status: SwapStatus.accepted,
-      createdAt: DateTime.now().subtract(const Duration(days: 2)),
-    ),
-    SwapOffer(
-      id: '5',
-      book: dummyBooks[4],
-      fromUser: 'Me',
-      toUser: 'David Brown',
-      status: SwapStatus.rejected,
-      createdAt: DateTime.now().subtract(const Duration(days: 3)),
-    ),
-  ];
+  final SwapService _swapService = SwapService();
+  final AuthService _authService = AuthService();
+  final BookService _bookService = BookService();
 
   @override
   void initState() {
@@ -77,6 +35,46 @@ class _MyOffersPageState extends State<MyOffersPage>
 
   @override
   Widget build(BuildContext context) {
+    final currentUser = _authService.currentUser;
+
+    if (currentUser == null) {
+      return Scaffold(
+        backgroundColor: const Color(0xFF0B1026),
+        appBar: AppBar(
+          backgroundColor: const Color(0xFF0B1026),
+          elevation: 0,
+          title: const Text(
+            'My Offers',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        body: const Center(
+          child: Text(
+            'Please sign in to view offers',
+            style: TextStyle(color: Colors.white60),
+          ),
+        ),
+        bottomNavigationBar: AppBottomNavBar(
+          currentIndex: 2,
+          onTap: (index) {
+            if (index == 0) {
+              Navigator.pushReplacementNamed(context, '/browse');
+            } else if (index == 1) {
+              Navigator.pushReplacementNamed(context, '/my-listings');
+            } else if (index == 3) {
+              Navigator.pushReplacementNamed(context, '/profile');
+            } else if (index == 4) {
+              Navigator.pushReplacementNamed(context, '/settings');
+            }
+          },
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: const Color(0xFF0B1026),
       appBar: AppBar(
@@ -104,8 +102,8 @@ class _MyOffersPageState extends State<MyOffersPage>
       body: TabBarView(
         controller: _tabController,
         children: [
-          _buildOffersList(_incomingOffers, isIncoming: true),
-          _buildOffersList(_outgoingOffers, isIncoming: false),
+          _buildIncomingOffers(currentUser.uid),
+          _buildOutgoingOffers(currentUser.uid),
         ],
       ),
       bottomNavigationBar: AppBottomNavBar(
@@ -127,43 +125,146 @@ class _MyOffersPageState extends State<MyOffersPage>
     );
   }
 
-  Widget _buildOffersList(List<SwapOffer> offers, {required bool isIncoming}) {
-    if (offers.isEmpty) {
-      return EmptyStateWidget(
-        icon: isIncoming ? Icons.inbox_outlined : Icons.send_outlined,
-        title: isIncoming ? 'No incoming offers' : 'No outgoing offers',
-      );
-    }
+  Widget _buildIncomingOffers(String userId) {
+    return StreamBuilder<List<SwapOffer>>(
+      stream: _swapService.getReceivedOffers(userId),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: CircularProgressIndicator(color: Color(0xFFF1C64A)),
+          );
+        }
 
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: offers.length,
-      itemBuilder: (context, index) {
-        return OfferCard(
-          offer: offers[index],
-          isIncoming: isIncoming,
-          onAccept: isIncoming ? () => _handleAccept(offers[index]) : null,
-          onReject: isIncoming ? () => _handleReject(offers[index]) : null,
+        if (snapshot.hasError) {
+          return Center(
+            child: Text(
+              'Error loading offers: ${snapshot.error}',
+              style: const TextStyle(color: Colors.white),
+            ),
+          );
+        }
+
+        final offers = snapshot.data ?? [];
+
+        if (offers.isEmpty) {
+          return const EmptyStateWidget(
+            icon: Icons.inbox_outlined,
+            title: 'No incoming offers',
+            subtitle: 'When someone requests your books, they will appear here',
+          );
+        }
+
+        return ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: offers.length,
+          itemBuilder: (context, index) {
+            return OfferCard(
+              offer: offers[index],
+              isIncoming: true,
+              onAccept: () => _handleAccept(offers[index]),
+              onReject: () => _handleReject(offers[index]),
+            );
+          },
         );
       },
     );
   }
 
-  void _handleAccept(SwapOffer offer) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Accepted swap offer for "${offer.book.title}"'),
-        backgroundColor: Colors.green,
-      ),
+  Widget _buildOutgoingOffers(String userId) {
+    return StreamBuilder<List<SwapOffer>>(
+      stream: _swapService.getSentOffers(userId),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: CircularProgressIndicator(color: Color(0xFFF1C64A)),
+          );
+        }
+
+        if (snapshot.hasError) {
+          return Center(
+            child: Text(
+              'Error loading offers: ${snapshot.error}',
+              style: const TextStyle(color: Colors.white),
+            ),
+          );
+        }
+
+        final offers = snapshot.data ?? [];
+
+        if (offers.isEmpty) {
+          return const EmptyStateWidget(
+            icon: Icons.send_outlined,
+            title: 'No outgoing offers',
+            subtitle: 'Offers you make will appear here',
+          );
+        }
+
+        return ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: offers.length,
+          itemBuilder: (context, index) {
+            return OfferCard(
+              offer: offers[index],
+              isIncoming: false,
+              onAccept: null,
+              onReject: null,
+            );
+          },
+        );
+      },
     );
   }
 
-  void _handleReject(SwapOffer offer) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Rejected swap offer for "${offer.book.title}"'),
-        backgroundColor: Colors.red,
-      ),
-    );
+  void _handleAccept(SwapOffer offer) async {
+    try {
+      // Update offer status to accepted
+      await _swapService.updateOfferStatus(offer.id, 'accepted');
+
+      // Mark the book as unavailable
+      await _bookService.updateBook(bookId: offer.bookId, isAvailable: false);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Accepted swap offer for "${offer.bookTitle}"'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error accepting offer: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  void _handleReject(SwapOffer offer) async {
+    try {
+      // Update offer status to rejected
+      await _swapService.updateOfferStatus(offer.id, 'rejected');
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Rejected swap offer for "${offer.bookTitle}"'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error rejecting offer: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 }
