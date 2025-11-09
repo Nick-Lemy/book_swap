@@ -3,6 +3,9 @@ import '../models/chat.dart';
 import '../widgets/app_bottom_nav_bar.dart';
 import '../widgets/empty_state_widget.dart';
 import '../widgets/chat_list_tile.dart';
+import '../services/chat_service.dart';
+import '../services/auth_service.dart';
+import 'chat_page.dart';
 
 class ChatListPage extends StatefulWidget {
   const ChatListPage({super.key});
@@ -12,52 +15,38 @@ class ChatListPage extends StatefulWidget {
 }
 
 class _ChatListPageState extends State<ChatListPage> {
-  // Dummy chat data
-  final List<ChatConversation> _conversations = [
-    ChatConversation(
-      conversationId: '1',
-      otherUserId: 'user1',
-      otherUserName: 'John Smith',
-      otherUserAvatar: 'J',
-      lastMessage: 'Is the book still available?',
-      lastMessageTime: DateTime.now().subtract(const Duration(minutes: 5)),
-      unreadCount: 2,
-      otherUserOnline: true,
-    ),
-    ChatConversation(
-      conversationId: '2',
-      otherUserId: 'user2',
-      otherUserName: 'Alice Johnson',
-      otherUserAvatar: 'A',
-      lastMessage: 'Thanks for the swap!',
-      lastMessageTime: DateTime.now().subtract(const Duration(hours: 2)),
-      unreadCount: 0,
-      otherUserOnline: false,
-    ),
-    ChatConversation(
-      conversationId: '3',
-      otherUserId: 'user3',
-      otherUserName: 'Bob Wilson',
-      otherUserAvatar: 'B',
-      lastMessage: 'When can we meet for the exchange?',
-      lastMessageTime: DateTime.now().subtract(const Duration(days: 1)),
-      unreadCount: 1,
-      otherUserOnline: true,
-    ),
-    ChatConversation(
-      conversationId: '4',
-      otherUserId: 'user4',
-      otherUserName: 'Carol Davis',
-      otherUserAvatar: 'C',
-      lastMessage: 'Great! I\'ll take it.',
-      lastMessageTime: DateTime.now().subtract(const Duration(days: 2)),
-      unreadCount: 0,
-      otherUserOnline: false,
-    ),
-  ];
+  final ChatService _chatService = ChatService();
+  final AuthService _authService = AuthService();
 
   @override
   Widget build(BuildContext context) {
+    final currentUser = _authService.currentUser;
+
+    if (currentUser == null) {
+      return Scaffold(
+        backgroundColor: const Color(0xFF0B1026),
+        appBar: AppBar(
+          backgroundColor: const Color(0xFF0B1026),
+          elevation: 0,
+          title: const Text(
+            'Chats',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        body: const Center(
+          child: Text(
+            'Please sign in to view chats',
+            style: TextStyle(color: Colors.white60),
+          ),
+        ),
+        bottomNavigationBar: const AppBottomNavBar(currentIndex: 2),
+      );
+    }
+
     return Scaffold(
       backgroundColor: const Color(0xFF0B1026),
       appBar: AppBar(
@@ -75,32 +64,61 @@ class _ChatListPageState extends State<ChatListPage> {
           IconButton(
             icon: const Icon(Icons.search, color: Colors.white),
             onPressed: () {
-              // Implement search functionality
+              // TODO: Implement search functionality
             },
           ),
         ],
       ),
-      body: _conversations.isEmpty
-          ? const EmptyStateWidget(
+      body: StreamBuilder<List<ChatConversation>>(
+        stream: _chatService.getUserConversations(currentUser.uid),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (snapshot.hasError) {
+            return Center(
+              child: Text(
+                'Error loading chats: ${snapshot.error}',
+                style: const TextStyle(color: Colors.white),
+              ),
+            );
+          }
+
+          final conversations = snapshot.data ?? [];
+
+          if (conversations.isEmpty) {
+            return const EmptyStateWidget(
               icon: Icons.chat_bubble_outline,
               title: 'No conversations yet',
               subtitle: 'Start chatting by requesting a swap',
-            )
-          : ListView.builder(
-              itemCount: _conversations.length,
-              itemBuilder: (context, index) {
-                return ChatListTile(
-                  conversation: _conversations[index],
-                  onTap: () {
-                    Navigator.pushNamed(
-                      context,
-                      '/chat',
-                      arguments: _conversations[index],
-                    );
-                  },
-                );
-              },
-            ),
+            );
+          }
+
+          return ListView.builder(
+            itemCount: conversations.length,
+            itemBuilder: (context, index) {
+              final conversation = conversations[index];
+              return ChatListTile(
+                conversation: conversation,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ChatPage(
+                        conversationId: conversation.conversationId,
+                        otherUserId: conversation.otherUserId,
+                        otherUserName: conversation.otherUserName,
+                        otherUserAvatar: conversation.otherUserAvatar,
+                      ),
+                    ),
+                  );
+                },
+              );
+            },
+          );
+        },
+      ),
       bottomNavigationBar: AppBottomNavBar(
         currentIndex: 2,
         onTap: (index) {

@@ -77,15 +77,23 @@ class _PostBookPageState extends State<PostBookPage> {
           ownerEmail: currentUser.email ?? '',
         );
 
+        print('Book created with ID: $bookId');
+
         // Upload image to Cloudinary if selected
         if (_selectedImage != null) {
+          print('Uploading image to Cloudinary...');
           final imageUrl = await _cloudinaryService.uploadBookCover(
             _selectedImage!,
             bookId,
           );
 
+          print('Image uploaded, URL: $imageUrl');
+
           // Update book with image URL
           await _bookService.updateBook(bookId: bookId, imageUrl: imageUrl);
+          print('Book updated with image URL');
+        } else {
+          print('No image selected');
         }
 
         if (mounted) {
@@ -98,6 +106,7 @@ class _PostBookPageState extends State<PostBookPage> {
           Navigator.pop(context);
         }
       } catch (e) {
+        print('Error posting book: $e');
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(

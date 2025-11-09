@@ -8,7 +8,6 @@ import 'package:book_swap/screens/profile_page.dart';
 import 'package:book_swap/screens/settings_page.dart';
 import 'package:book_swap/screens/my_offers_page.dart';
 import 'package:book_swap/screens/chat_list_page.dart';
-import 'package:book_swap/screens/chat_page.dart';
 import 'package:book_swap/screens/swap_history_page.dart';
 import 'package:book_swap/screens/other_user_profile_page.dart';
 import 'package:flutter/material.dart';
@@ -42,7 +41,7 @@ class MyApp extends StatelessWidget {
         '/settings': (context) => const SettingsPage(),
         '/my-offers': (context) => const MyOffersPage(),
         '/chats': (context) => const ChatListPage(),
-        '/chat': (context) => const ChatPage(),
+        // Note: ChatPage is navigated to programmatically with required parameters
         '/swap-history': (context) => const SwapHistoryPage(),
         '/other-user-profile': (context) => const OtherUserProfilePage(),
       },
