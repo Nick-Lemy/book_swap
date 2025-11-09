@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:typed_data';
+import '../models/book.dart';
 import '../widgets/primary_button.dart';
 import '../widgets/form_label.dart';
 import '../widgets/form_text_field.dart';
@@ -8,33 +9,48 @@ import '../widgets/condition_chip_selector.dart';
 import '../services/book_service.dart';
 import '../services/auth_service.dart';
 import '../services/cloudinary_service.dart';
-import '../services/user_service.dart';
 
-class PostBookPage extends StatefulWidget {
-  const PostBookPage({super.key});
+class EditBookPage extends StatefulWidget {
+  final Book book;
+
+  const EditBookPage({super.key, required this.book});
 
   @override
-  State<PostBookPage> createState() => _PostBookPageState();
+  State<EditBookPage> createState() => _EditBookPageState();
 }
 
-class _PostBookPageState extends State<PostBookPage> {
+class _EditBookPageState extends State<EditBookPage> {
   final BookService _bookService = BookService();
   final AuthService _authService = AuthService();
   final CloudinaryService _cloudinaryService = CloudinaryService();
-  final UserService _userService = UserService();
 
   static const Color _bg = Color(0xFF0B1026);
 
   final _formKey = GlobalKey<FormState>();
-  final _titleController = TextEditingController();
-  final _authorController = TextEditingController();
-  final _categoryController = TextEditingController();
-  final _descriptionController = TextEditingController();
+  late TextEditingController _titleController;
+  late TextEditingController _authorController;
+  late TextEditingController _categoryController;
+  late TextEditingController _descriptionController;
 
-  String selectedCondition = 'Like New';
+  late String selectedCondition;
   final List<String> conditions = ['New', 'Like New', 'Good', 'Used'];
   XFile? _selectedImage;
   bool _isLoading = false;
+  String? _currentImageUrl;
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize controllers with current book data
+    _titleController = TextEditingController(text: widget.book.title);
+    _authorController = TextEditingController(text: widget.book.author);
+    _categoryController = TextEditingController(text: widget.book.category);
+    _descriptionController = TextEditingController(
+      text: widget.book.description ?? '',
+    );
+    selectedCondition = widget.book.condition;
+    _currentImageUrl = widget.book.imageUrl;
+  }
 
   @override
   void dispose() {
@@ -46,26 +62,29 @@ class _PostBookPageState extends State<PostBookPage> {
   }
 
   Future<void> _pickImage() async {
-    print('Opening image picker dialog...');
     final result = await _cloudinaryService.showImageSourceDialog(context);
-    print('Image picker result: ${result?.path ?? "null"}');
     if (result != null) {
       setState(() {
         _selectedImage = result;
       });
-      print('Image set successfully: ${result.name}');
-    } else {
-      print('No image selected');
     }
   }
 
-  Future<void> _handlePost() async {
+  Future<void> _handleUpdate() async {
     if (_formKey.currentState!.validate()) {
       final currentUser = _authService.currentUser;
 
       if (currentUser == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('You must be logged in to post a book')),
+          const SnackBar(content: Text('You must be logged in to edit a book')),
+        );
+        return;
+      }
+
+      // Verify ownership
+      if (currentUser.uid != widget.book.ownerId) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('You can only edit your own books')),
         );
         return;
       }
@@ -73,56 +92,44 @@ class _PostBookPageState extends State<PostBookPage> {
       setState(() => _isLoading = true);
 
       try {
-        // Get user profile to get their name
-        final userProfile = await _userService.getUserProfile(currentUser.uid);
-        final userName = userProfile?.name ?? currentUser.email ?? 'User';
+        String? imageUrl = _currentImageUrl;
 
-        // First create book in Firestore to get the book ID
-        final bookId = await _bookService.createBook(
+        // Upload new image if selected
+        if (_selectedImage != null) {
+          print('Uploading new image to Cloudinary...');
+          imageUrl = await _cloudinaryService.uploadBookCover(
+            _selectedImage!,
+            widget.book.id,
+          );
+          print('New image uploaded, URL: $imageUrl');
+        }
+
+        // Update book in Firestore
+        await _bookService.updateBook(
+          bookId: widget.book.id,
           title: _titleController.text.trim(),
           author: _authorController.text.trim(),
           category: _categoryController.text.trim(),
           condition: selectedCondition,
           description: _descriptionController.text.trim(),
-          ownerId: currentUser.uid,
-          ownerName: userName,
-          ownerEmail: currentUser.email ?? '',
+          imageUrl: imageUrl,
         );
-
-        print('Book created with ID: $bookId');
-
-        // Upload image to Cloudinary if selected
-        if (_selectedImage != null) {
-          print('Uploading image to Cloudinary...');
-          final imageUrl = await _cloudinaryService.uploadBookCover(
-            _selectedImage!,
-            bookId,
-          );
-
-          print('Image uploaded, URL: $imageUrl');
-
-          // Update book with image URL
-          await _bookService.updateBook(bookId: bookId, imageUrl: imageUrl);
-          print('Book updated with image URL');
-        } else {
-          print('No image selected');
-        }
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Book posted successfully!'),
+              content: Text('Book updated successfully!'),
               backgroundColor: Colors.green,
             ),
           );
-          Navigator.pop(context);
+          Navigator.pop(context, true); // Return true to indicate success
         }
       } catch (e) {
-        print('Error posting book: $e');
+        print('Error updating book: $e');
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Error posting book: ${e.toString()}'),
+              content: Text('Error updating book: ${e.toString()}'),
               backgroundColor: Colors.red,
             ),
           );
@@ -147,7 +154,7 @@ class _PostBookPageState extends State<PostBookPage> {
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
-          'Post a Book',
+          'Edit Book',
           style: TextStyle(
             color: Colors.white,
             fontSize: 20,
@@ -164,7 +171,7 @@ class _PostBookPageState extends State<PostBookPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Book Cover Image
-                const FormLabel(text: 'Book Cover (Optional)'),
+                const FormLabel(text: 'Book Cover'),
                 const SizedBox(height: 8),
                 GestureDetector(
                   onTap: _pickImage,
@@ -185,28 +192,12 @@ class _PostBookPageState extends State<PostBookPage> {
                                 if (snapshot.connectionState ==
                                     ConnectionState.waiting) {
                                   return const Center(
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        CircularProgressIndicator(
-                                          color: Color(0xFFF1C64A),
-                                        ),
-                                        SizedBox(height: 8),
-                                        Text(
-                                          'Loading image...',
-                                          style: TextStyle(
-                                            color: Colors.white60,
-                                          ),
-                                        ),
-                                      ],
+                                    child: CircularProgressIndicator(
+                                      color: Color(0xFFF1C64A),
                                     ),
                                   );
                                 }
                                 if (snapshot.hasError) {
-                                  print(
-                                    'Error loading image: ${snapshot.error}',
-                                  );
                                   return Center(
                                     child: Column(
                                       mainAxisAlignment:
@@ -219,28 +210,17 @@ class _PostBookPageState extends State<PostBookPage> {
                                         ),
                                         const SizedBox(height: 8),
                                         Text(
-                                          'Error loading image',
+                                          'Error: ${snapshot.error}',
                                           style: const TextStyle(
                                             color: Colors.red,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          '${snapshot.error}',
-                                          style: const TextStyle(
-                                            color: Colors.white60,
                                             fontSize: 12,
                                           ),
-                                          textAlign: TextAlign.center,
                                         ),
                                       ],
                                     ),
                                   );
                                 }
                                 if (snapshot.hasData) {
-                                  print(
-                                    'Image loaded successfully: ${snapshot.data!.length} bytes',
-                                  );
                                   return Stack(
                                     children: [
                                       Image.memory(
@@ -284,9 +264,34 @@ class _PostBookPageState extends State<PostBookPage> {
                               },
                             ),
                           )
-                        : const Column(
+                        : _currentImageUrl != null
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Image.network(
+                              _currentImageUrl!,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: const [
+                                    Icon(
+                                      Icons.add_photo_alternate,
+                                      size: 48,
+                                      color: Colors.white30,
+                                    ),
+                                    SizedBox(height: 8),
+                                    Text(
+                                      'Tap to change book cover',
+                                      style: TextStyle(color: Colors.white38),
+                                    ),
+                                  ],
+                                );
+                              },
+                            ),
+                          )
+                        : Column(
                             mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
+                            children: const [
                               Icon(
                                 Icons.add_photo_alternate,
                                 size: 48,
@@ -295,10 +300,7 @@ class _PostBookPageState extends State<PostBookPage> {
                               SizedBox(height: 8),
                               Text(
                                 'Tap to add book cover',
-                                style: TextStyle(
-                                  color: Colors.white60,
-                                  fontSize: 14,
-                                ),
+                                style: TextStyle(color: Colors.white38),
                               ),
                             ],
                           ),
@@ -307,14 +309,14 @@ class _PostBookPageState extends State<PostBookPage> {
                 const SizedBox(height: 20),
 
                 // Book Title
-                const FormLabel(text: 'Book Title'),
+                const FormLabel(text: 'Title'),
                 const SizedBox(height: 8),
                 FormTextField(
                   controller: _titleController,
                   hintText: 'Enter book title',
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter a book title';
+                      return 'Please enter the book title';
                     }
                     return null;
                   },
@@ -351,16 +353,13 @@ class _PostBookPageState extends State<PostBookPage> {
                 ),
                 const SizedBox(height: 20),
 
-                // Description (Optional)
-                const FormLabel(
-                  text: 'Description (Optional)',
-                  isRequired: false,
-                ),
+                // Description
+                const FormLabel(text: 'Description'),
                 const SizedBox(height: 8),
                 FormTextField(
                   controller: _descriptionController,
-                  hintText: 'Describe the book condition, notes, etc.',
-                  maxLines: 3,
+                  hintText: 'Enter book description',
+                  maxLines: 4,
                 ),
                 const SizedBox(height: 20),
 
@@ -378,10 +377,10 @@ class _PostBookPageState extends State<PostBookPage> {
                 ),
                 const SizedBox(height: 40),
 
-                // Post Button
+                // Update Button
                 PrimaryButton(
-                  text: _isLoading ? 'Posting...' : 'Post Book',
-                  onPressed: _isLoading ? null : () => _handlePost(),
+                  text: _isLoading ? 'Updating...' : 'Update Book',
+                  onPressed: _isLoading ? null : () => _handleUpdate(),
                 ),
                 const SizedBox(height: 20),
               ],

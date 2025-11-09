@@ -1,5 +1,5 @@
-import 'dart:io';
 import 'package:cloudinary_public/cloudinary_public.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -18,8 +18,9 @@ class CloudinaryService {
   }
 
   /// Pick image from gallery
-  Future<File?> pickImageFromGallery() async {
+  Future<XFile?> pickImageFromGallery() async {
     try {
+      print('Picking image from gallery...');
       final XFile? image = await _picker.pickImage(
         source: ImageSource.gallery,
         maxWidth: 1920,
@@ -28,9 +29,13 @@ class CloudinaryService {
       );
 
       if (image != null) {
-        return File(image.path);
+        print(
+          'Image picked successfully: ${image.name}, size: ${await image.length()} bytes',
+        );
+      } else {
+        print('No image was selected');
       }
-      return null;
+      return image;
     } catch (e) {
       print('Error picking image: $e');
       return null;
@@ -38,7 +43,7 @@ class CloudinaryService {
   }
 
   /// Pick image from camera
-  Future<File?> pickImageFromCamera() async {
+  Future<XFile?> pickImageFromCamera() async {
     try {
       final XFile? image = await _picker.pickImage(
         source: ImageSource.camera,
@@ -47,10 +52,7 @@ class CloudinaryService {
         imageQuality: 85,
       );
 
-      if (image != null) {
-        return File(image.path);
-      }
-      return null;
+      return image;
     } catch (e) {
       print('Error taking photo: $e');
       return null;
@@ -58,16 +60,33 @@ class CloudinaryService {
   }
 
   /// Upload book cover to Cloudinary
-  Future<String> uploadBookCover(File imageFile, String bookId) async {
+  Future<String> uploadBookCover(XFile imageFile, String bookId) async {
     try {
-      CloudinaryResponse response = await _cloudinary.uploadFile(
-        CloudinaryFile.fromFile(
-          imageFile.path,
-          folder: 'bookswap/book_covers',
-          resourceType: CloudinaryResourceType.Image,
-          publicId: 'book_$bookId',
-        ),
-      );
+      CloudinaryResponse response;
+
+      if (kIsWeb) {
+        // For web, read bytes from XFile
+        final bytes = await imageFile.readAsBytes();
+        response = await _cloudinary.uploadFile(
+          CloudinaryFile.fromBytesData(
+            bytes,
+            identifier: imageFile.name,
+            folder: 'bookswap/book_covers',
+            resourceType: CloudinaryResourceType.Image,
+            publicId: 'book_$bookId',
+          ),
+        );
+      } else {
+        // For mobile, use file path
+        response = await _cloudinary.uploadFile(
+          CloudinaryFile.fromFile(
+            imageFile.path,
+            folder: 'bookswap/book_covers',
+            resourceType: CloudinaryResourceType.Image,
+            publicId: 'book_$bookId',
+          ),
+        );
+      }
 
       return response.secureUrl;
     } catch (e) {
@@ -77,16 +96,33 @@ class CloudinaryService {
   }
 
   /// Upload user avatar to Cloudinary
-  Future<String> uploadUserAvatar(File imageFile, String userId) async {
+  Future<String> uploadUserAvatar(XFile imageFile, String userId) async {
     try {
-      CloudinaryResponse response = await _cloudinary.uploadFile(
-        CloudinaryFile.fromFile(
-          imageFile.path,
-          folder: 'bookswap/user_avatars',
-          resourceType: CloudinaryResourceType.Image,
-          publicId: 'avatar_$userId',
-        ),
-      );
+      CloudinaryResponse response;
+
+      if (kIsWeb) {
+        // For web, read bytes from XFile
+        final bytes = await imageFile.readAsBytes();
+        response = await _cloudinary.uploadFile(
+          CloudinaryFile.fromBytesData(
+            bytes,
+            identifier: imageFile.name,
+            folder: 'bookswap/user_avatars',
+            resourceType: CloudinaryResourceType.Image,
+            publicId: 'avatar_$userId',
+          ),
+        );
+      } else {
+        // For mobile, use file path
+        response = await _cloudinary.uploadFile(
+          CloudinaryFile.fromFile(
+            imageFile.path,
+            folder: 'bookswap/user_avatars',
+            resourceType: CloudinaryResourceType.Image,
+            publicId: 'avatar_$userId',
+          ),
+        );
+      }
 
       return response.secureUrl;
     } catch (e) {
@@ -107,10 +143,10 @@ class CloudinaryService {
   }
 
   /// Show image picker dialog
-  Future<File?> showImageSourceDialog(BuildContext context) async {
-    return await showDialog<File?>(
+  Future<XFile?> showImageSourceDialog(BuildContext context) async {
+    final XFile? result = await showDialog<XFile?>(
       context: context,
-      builder: (BuildContext context) {
+      builder: (BuildContext dialogContext) {
         return AlertDialog(
           backgroundColor: const Color(0xFF1A1F3A),
           title: const Text(
@@ -130,31 +166,34 @@ class CloudinaryService {
                   style: TextStyle(color: Colors.white),
                 ),
                 onTap: () async {
-                  Navigator.pop(context);
                   final file = await pickImageFromGallery();
-                  if (context.mounted && file != null) {
-                    Navigator.pop(context, file);
+                  if (dialogContext.mounted) {
+                    Navigator.pop(dialogContext, file);
                   }
                 },
               ),
-              ListTile(
-                leading: const Icon(Icons.camera_alt, color: Color(0xFFF1C64A)),
-                title: const Text(
-                  'Camera',
-                  style: TextStyle(color: Colors.white),
+              if (!kIsWeb) // Camera not available on web
+                ListTile(
+                  leading: const Icon(
+                    Icons.camera_alt,
+                    color: Color(0xFFF1C64A),
+                  ),
+                  title: const Text(
+                    'Camera',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  onTap: () async {
+                    final file = await pickImageFromCamera();
+                    if (dialogContext.mounted) {
+                      Navigator.pop(dialogContext, file);
+                    }
+                  },
                 ),
-                onTap: () async {
-                  Navigator.pop(context);
-                  final file = await pickImageFromCamera();
-                  if (context.mounted && file != null) {
-                    Navigator.pop(context, file);
-                  }
-                },
-              ),
             ],
           ),
         );
       },
     );
+    return result;
   }
 }

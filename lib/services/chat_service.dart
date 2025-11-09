@@ -127,15 +127,25 @@ class ChatService {
 
   // Get all conversations for a user
   Stream<List<ChatConversation>> getUserConversations(String userId) {
+    print('🔍 Fetching conversations for user: $userId');
     return _firestore
         .collection(_conversationsCollection)
         .where('participants', arrayContains: userId)
-        .orderBy('lastMessageTime', descending: true)
         .snapshots()
         .map((snapshot) {
-          return snapshot.docs.map((doc) {
-            return _conversationFromFirestore(doc, userId);
-          }).toList();
+          print('📊 Found ${snapshot.docs.length} conversation documents');
+          // Sort in memory instead of in the query to avoid index requirement
+          final conversations = snapshot.docs
+              .map((doc) => _conversationFromFirestore(doc, userId))
+              .toList();
+
+          // Sort by lastMessageTime in descending order
+          conversations.sort(
+            (a, b) => b.lastMessageTime.compareTo(a.lastMessageTime),
+          );
+
+          print('✅ Returning ${conversations.length} sorted conversations');
+          return conversations;
         });
   }
 

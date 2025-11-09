@@ -1,11 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/swap_offer.dart';
 import '../models/swap_history.dart';
+import 'user_service.dart';
+import 'chat_service.dart';
 
 class SwapService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final String _offersCollection = 'swap_offers';
   final String _historyCollection = 'swap_history';
+  final ChatService _chatService = ChatService();
+  final UserService _userService = UserService();
 
   // Create a swap offer
   Future<String> createSwapOffer({
@@ -112,6 +116,9 @@ class SwapService {
           // Create swap history for both users
           await _createSwapHistory(offerData);
 
+          // Create chat conversation between the two users
+          await _createSwapChat(offerData);
+
           // Mark both books as unavailable
           await _firestore
               .collection('books')
@@ -161,6 +168,49 @@ class SwapService {
       });
     } catch (e) {
       throw 'Error creating swap history: $e';
+    }
+  }
+
+  // Create chat conversation for swap
+  Future<void> _createSwapChat(Map<String, dynamic> offerData) async {
+    try {
+      print('🔄 Creating swap chat...');
+      print('Requester ID: ${offerData['requesterId']}');
+      print('Owner ID: ${offerData['ownerId']}');
+      print('Requester Name: ${offerData['requesterName']}');
+      print('Owner Name: ${offerData['ownerName']}');
+
+      // Get user profiles to get avatars
+      final ownerProfile = await _userService.getUserProfile(
+        offerData['ownerId'],
+      );
+
+      // Create or get existing conversation
+      final conversationId = await _chatService.getOrCreateConversation(
+        offerData['requesterId'],
+        offerData['ownerId'],
+        offerData['requesterName'],
+        offerData['ownerName'],
+        '📚', // Could be fetched from requester profile
+        ownerProfile?.avatar ?? '📚',
+      );
+
+      print('✅ Conversation created/found: $conversationId');
+
+      // Send an automatic message about the swap
+      await _chatService.sendMessage(
+        conversationId: conversationId,
+        senderId: offerData['requesterId'],
+        receiverId: offerData['ownerId'],
+        message:
+            '🎉 Swap accepted! You\'re exchanging "${offerData['offeredBookTitle']}" for "${offerData['requestedBookTitle']}". Let\'s arrange the details!',
+      );
+
+      print('✅ Chat conversation created successfully: $conversationId');
+    } catch (e) {
+      // Don't throw error - chat creation is not critical
+      print('❌ Error creating swap chat: $e');
+      print('Stack trace: ${StackTrace.current}');
     }
   }
 

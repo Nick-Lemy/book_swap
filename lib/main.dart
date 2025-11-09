@@ -10,10 +10,17 @@ import 'package:book_swap/screens/my_offers_page.dart';
 import 'package:book_swap/screens/chat_list_page.dart';
 import 'package:book_swap/screens/swap_history_page.dart';
 import 'package:book_swap/screens/other_user_profile_page.dart';
+import 'package:book_swap/screens/email_verification_page.dart';
+import 'package:book_swap/screens/edit_book_page.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 import 'services/auth_service.dart';
+import 'providers/auth_provider.dart';
+import 'providers/book_provider.dart';
+import 'providers/swap_provider.dart';
+import 'providers/chat_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,25 +33,33 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'BookSwap',
-      debugShowCheckedModeBanner: false,
-      home: const AuthWrapper(),
-      routes: {
-        '/welcome': (context) => const WelcomeScreen(),
-        '/login': (context) => const LoginPage(),
-        '/signup': (context) => const SignUpPage(),
-        '/browse': (context) => const BrowseListingsPage(),
-        '/my-listings': (context) => const MyListingsPage(),
-        '/post-book': (context) => const PostBookPage(),
-        '/profile': (context) => const ProfilePage(),
-        '/settings': (context) => const SettingsPage(),
-        '/my-offers': (context) => const MyOffersPage(),
-        '/chats': (context) => const ChatListPage(),
-        // Note: ChatPage is navigated to programmatically with required parameters
-        '/swap-history': (context) => const SwapHistoryPage(),
-        '/other-user-profile': (context) => const OtherUserProfilePage(),
-      },
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => BookProvider()),
+        ChangeNotifierProvider(create: (_) => SwapProvider()),
+        ChangeNotifierProvider(create: (_) => ChatProvider()),
+      ],
+      child: MaterialApp(
+        title: 'BookSwap',
+        debugShowCheckedModeBanner: false,
+        home: const AuthWrapper(),
+        routes: {
+          '/welcome': (context) => const WelcomeScreen(),
+          '/login': (context) => const LoginPage(),
+          '/signup': (context) => const SignUpPage(),
+          '/browse': (context) => const BrowseListingsPage(),
+          '/my-listings': (context) => const MyListingsPage(),
+          '/post-book': (context) => const PostBookPage(),
+          '/profile': (context) => const ProfilePage(),
+          '/settings': (context) => const SettingsPage(),
+          '/my-offers': (context) => const MyOffersPage(),
+          '/chats': (context) => const ChatListPage(),
+          // Note: ChatPage is navigated to programmatically with required parameters
+          '/swap-history': (context) => const SwapHistoryPage(),
+          '/other-user-profile': (context) => const OtherUserProfilePage(),
+        },
+      ),
     );
   }
 }
@@ -69,8 +84,13 @@ class AuthWrapper extends StatelessWidget {
           );
         }
 
-        // User is signed in, go to browse
+        // User is signed in
         if (snapshot.hasData) {
+          // Check if email is verified
+          if (!authService.isEmailVerified) {
+            return const EmailVerificationPage();
+          }
+          // Email is verified, go to browse
           return const BrowseListingsPage();
         }
 

@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import '../models/book.dart';
 import '../widgets/primary_button.dart';
 import '../widgets/status_chip.dart';
+import '../widgets/book_selection_dialog.dart';
 import '../services/auth_service.dart';
 import '../services/book_service.dart';
 import '../services/swap_service.dart';
+import '../services/user_service.dart';
+import 'edit_book_page.dart';
 
 class BookDetailPage extends StatefulWidget {
   final Book book;
@@ -19,6 +22,7 @@ class _BookDetailPageState extends State<BookDetailPage> {
   final AuthService _authService = AuthService();
   final BookService _bookService = BookService();
   final SwapService _swapService = SwapService();
+  final UserService _userService = UserService();
   bool _isDeleting = false;
   bool _isSendingRequest = false;
 
@@ -110,39 +114,77 @@ class _BookDetailPageState extends State<BookDetailPage> {
       return;
     }
 
-    // TODO: In a full implementation, we would show a dialog to let the user
-    // select which of their books they want to offer in exchange.
-    // For now, we'll just create a simple swap request.
-
-    setState(() => _isSendingRequest = true);
-
+    // Get user's books to offer in exchange
     try {
-      // Note: This is a simplified version. In reality, the user should select
-      // a book they want to offer in exchange. For now, we're using placeholder values.
-      await _swapService.createSwapOffer(
-        requesterId: currentUser.uid,
-        requesterName: currentUser.displayName ?? 'Unknown User',
-        ownerId: widget.book.ownerId,
-        ownerName: widget.book.owner,
-        requestedBookId: widget.book.id,
-        requestedBookTitle: widget.book.title,
-        offeredBookId: 'placeholder', // TODO: User should select their book
-        offeredBookTitle:
-            'To be selected', // TODO: User should select their book
-        requestedBookImage: widget.book.imageUrl,
-      );
+      final userBooks = await _bookService.getUserBooks(currentUser.uid).first;
 
+      if (userBooks.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'You need to post a book first before requesting a swap',
+              ),
+              backgroundColor: Colors.orange,
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+        return;
+      }
+
+      // Get user's profile to get their name
+      final userProfile = await _userService.getUserProfile(currentUser.uid);
+      final userName = userProfile?.name ?? currentUser.email ?? 'User';
+
+      // Show book selection dialog
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Swap request sent!'),
-            backgroundColor: Colors.green,
+        final selectedBook = await showDialog<Book>(
+          context: context,
+          builder: (context) => BookSelectionDialog(
+            userBooks: userBooks,
+            title: 'Select Your Book to Offer',
+            subtitle:
+                'Choose which book you want to exchange for "${widget.book.title}"',
           ),
         );
-        Navigator.pushNamed(context, '/my-offers');
+
+        if (selectedBook == null) {
+          // User cancelled
+          return;
+        }
+
+        // Create swap offer with selected book
+        setState(() => _isSendingRequest = true);
+
+        await _swapService.createSwapOffer(
+          requesterId: currentUser.uid,
+          requesterName: userName,
+          ownerId: widget.book.ownerId,
+          ownerName: widget.book.owner,
+          requestedBookId: widget.book.id,
+          requestedBookTitle: widget.book.title,
+          offeredBookId: selectedBook.id,
+          offeredBookTitle: selectedBook.title,
+          requestedBookImage: widget.book.imageUrl,
+        );
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Swap request sent! You offered "${selectedBook.title}" for "${widget.book.title}"',
+              ),
+              backgroundColor: Colors.green,
+              duration: const Duration(seconds: 3),
+            ),
+          );
+          Navigator.pushNamed(context, '/my-offers');
+        }
       }
     } catch (e) {
       if (mounted) {
+        setState(() => _isSendingRequest = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error sending request: $e'),
@@ -192,6 +234,25 @@ class _BookDetailPageState extends State<BookDetailPage> {
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
+          // Show Edit button only for owners
+          if (_isOwner())
+            IconButton(
+              icon: const Icon(Icons.edit, color: Colors.white),
+              onPressed: () async {
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => EditBookPage(book: widget.book),
+                  ),
+                );
+                // If book was updated, refresh the page
+                if (result == true && mounted) {
+                  setState(() {
+                    // Trigger rebuild to show updated data
+                  });
+                }
+              },
+            ),
           IconButton(
             icon: const Icon(Icons.share, color: Colors.white),
             onPressed: () {

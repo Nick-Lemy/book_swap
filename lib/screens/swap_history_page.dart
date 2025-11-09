@@ -1,78 +1,73 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/swap_history.dart';
-import '../constants/dummy_data.dart';
+import '../providers/swap_provider.dart';
+import '../providers/auth_provider.dart';
 import '../widgets/empty_state_widget.dart';
 
-class SwapHistoryPage extends StatelessWidget {
+class SwapHistoryPage extends StatefulWidget {
   const SwapHistoryPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    // Dummy swap history data
-    final List<SwapHistoryItem> swapHistory = [
-      SwapHistoryItem(
-        id: '1',
-        bookReceivedTitle: dummyBooks[0].title,
-        bookReceivedAuthor: dummyBooks[0].author,
-        bookReceivedImageUrl: dummyBooks[0].imageUrl,
-        bookGivenTitle: 'Computer Networks',
-        bookGivenAuthor: 'Andrew Tanenbaum',
-        swappedWith: 'John Smith',
-        swapDate: DateTime.now().subtract(const Duration(days: 7)),
-      ),
-      SwapHistoryItem(
-        id: '2',
-        bookReceivedTitle: dummyBooks[1].title,
-        bookReceivedAuthor: dummyBooks[1].author,
-        bookReceivedImageUrl: dummyBooks[1].imageUrl,
-        bookGivenTitle: 'Database Systems',
-        bookGivenAuthor: 'Ramez Elmasri',
-        swappedWith: 'Alice Johnson',
-        swapDate: DateTime.now().subtract(const Duration(days: 14)),
-      ),
-      SwapHistoryItem(
-        id: '3',
-        bookReceivedTitle: dummyBooks[3].title,
-        bookReceivedAuthor: dummyBooks[3].author,
-        bookReceivedImageUrl: dummyBooks[3].imageUrl,
-        bookGivenTitle: 'Software Engineering Principles',
-        bookGivenAuthor: 'Robert Martin',
-        swappedWith: 'Bob Wilson',
-        swapDate: DateTime.now().subtract(const Duration(days: 30)),
-      ),
-    ];
+  State<SwapHistoryPage> createState() => _SwapHistoryPageState();
+}
 
-    return Scaffold(
-      backgroundColor: const Color(0xFF0B1026),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF0B1026),
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text(
-          'Swap History',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-      body: swapHistory.isEmpty
-          ? const EmptyStateWidget(
-              icon: Icons.history,
-              title: 'No swap history yet',
-              subtitle: 'Your completed swaps will appear here',
-            )
-          : ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: swapHistory.length,
-              itemBuilder: (context, index) {
-                return _SwapHistoryCard(item: swapHistory[index]);
-              },
+class _SwapHistoryPageState extends State<SwapHistoryPage> {
+  @override
+  void initState() {
+    super.initState();
+    // Start listening to swap history when page loads
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final userId = context.read<AuthProvider>().user?.uid;
+      if (userId != null) {
+        context.read<SwapProvider>().listenToSwapHistory(userId);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer2<SwapProvider, AuthProvider>(
+      builder: (context, swapProvider, authProvider, child) {
+        final swapHistory = swapProvider.swapHistory;
+
+        return Scaffold(
+          backgroundColor: const Color(0xFF0B1026),
+          appBar: AppBar(
+            backgroundColor: const Color(0xFF0B1026),
+            elevation: 0,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.white),
+              onPressed: () => Navigator.pop(context),
             ),
+            title: const Text(
+              'Swap History',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          body: swapProvider.isLoading
+              ? const Center(
+                  child: CircularProgressIndicator(color: Color(0xFFF1C64A)),
+                )
+              : swapHistory.isEmpty
+              ? const EmptyStateWidget(
+                  icon: Icons.history,
+                  title: 'No swap history yet',
+                  subtitle: 'Your completed swaps will appear here',
+                )
+              : ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: swapHistory.length,
+                  itemBuilder: (context, index) {
+                    return _SwapHistoryCard(item: swapHistory[index]);
+                  },
+                ),
+        );
+      },
     );
   }
 }

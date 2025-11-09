@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../widgets/custom_text_field.dart';
 import '../widgets/primary_button.dart';
 import '../widgets/link_text.dart';
+import '../providers/auth_provider.dart';
 import '../services/auth_service.dart';
 
 class LoginPage extends StatefulWidget {
@@ -12,10 +14,8 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final AuthService _authService = AuthService();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  bool _isLoading = false;
 
   static const Color _bg = Color(0xFF0B1026);
   static const Color _accent = Color(0xFFF1C64A);
@@ -28,6 +28,8 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> _handleLogin() async {
+    final authProvider = context.read<AuthProvider>();
+
     if (_emailController.text.trim().isEmpty ||
         _passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -36,26 +38,23 @@ class _LoginPageState extends State<LoginPage> {
       return;
     }
 
-    setState(() => _isLoading = true);
+    final error = await authProvider.signIn(
+      email: _emailController.text.trim(),
+      password: _passwordController.text,
+    );
 
-    try {
-      await _authService.signInWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
-      );
-
-      if (mounted) {
-        Navigator.pushReplacementNamed(context, '/browse');
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Login failed: ${e.toString()}')),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
+    if (mounted) {
+      if (error != null) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Login failed: $error')));
+      } else {
+        // Check if email is verified
+        if (!authProvider.isEmailVerified) {
+          Navigator.pushReplacementNamed(context, '/browse');
+        } else {
+          Navigator.pushReplacementNamed(context, '/browse');
+        }
       }
     }
   }
@@ -120,7 +119,7 @@ class _LoginPageState extends State<LoginPage> {
                       return;
                     }
                     try {
-                      await _authService.sendPasswordResetEmail(email);
+                      await AuthService().sendPasswordResetEmail(email);
                       if (mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
@@ -146,9 +145,13 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
               const SizedBox(height: 32),
-              PrimaryButton(
-                text: _isLoading ? 'Logging in...' : 'Login',
-                onPressed: _isLoading ? () {} : _handleLogin,
+              Consumer<AuthProvider>(
+                builder: (context, authProvider, child) {
+                  return PrimaryButton(
+                    text: authProvider.isLoading ? 'Logging in...' : 'Login',
+                    onPressed: authProvider.isLoading ? () {} : _handleLogin,
+                  );
+                },
               ),
               const SizedBox(height: 24),
               LinkText(
