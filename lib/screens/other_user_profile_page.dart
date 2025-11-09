@@ -162,7 +162,7 @@ class OtherUserProfilePage extends StatelessWidget {
               }),
               const SizedBox(width: 8),
               Text(
-                '${profile.rating.toStringAsFixed(1)}',
+                profile.rating.toStringAsFixed(1),
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 16,
