@@ -1,33 +1,44 @@
 class ChatMessage {
-  final String id;
-  final String text;
+  final String messageId;
+  final String conversationId;
+  final String senderId;
+  final String senderName;
+  final String message;
   final DateTime timestamp;
-  final bool isMe;
+  final bool isRead;
 
   ChatMessage({
-    required this.id,
-    required this.text,
+    required this.messageId,
+    required this.conversationId,
+    required this.senderId,
+    required this.senderName,
+    required this.message,
     required this.timestamp,
-    required this.isMe,
+    this.isRead = false,
   });
+
+  // Check if message is from current user
+  bool isMe(String currentUserId) => senderId == currentUserId;
 }
 
 class ChatConversation {
-  final String id;
-  final String userName;
-  final String userAvatar;
+  final String conversationId;
+  final String otherUserId;
+  final String otherUserName;
+  final String otherUserAvatar;
   final String lastMessage;
   final DateTime lastMessageTime;
   final int unreadCount;
-  final bool isOnline;
+  final bool otherUserOnline;
 
   ChatConversation({
-    required this.id,
-    required this.userName,
-    required this.userAvatar,
+    required this.conversationId,
+    required this.otherUserId,
+    required this.otherUserName,
+    required this.otherUserAvatar,
     required this.lastMessage,
     required this.lastMessageTime,
     this.unreadCount = 0,
-    this.isOnline = false,
+    this.otherUserOnline = false,
   });
 }

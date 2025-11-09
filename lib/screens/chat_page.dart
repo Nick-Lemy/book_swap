@@ -27,40 +27,56 @@ class _ChatPageState extends State<ChatPage> {
     // Dummy messages for the conversation
     _messages.addAll([
       ChatMessage(
-        id: '1',
-        text: 'Hi! I\'m interested in your Data Structures book.',
+        messageId: '1',
+        conversationId: 'conv_1',
+        senderId: 'other_user',
+        senderName: 'John Smith',
+        message: 'Hi! I\'m interested in your Data Structures book.',
         timestamp: DateTime.now().subtract(const Duration(hours: 2)),
-        isMe: false,
+        isRead: true,
       ),
       ChatMessage(
-        id: '2',
-        text: 'Hello! Yes, it\'s still available.',
+        messageId: '2',
+        conversationId: 'conv_1',
+        senderId: 'current_user',
+        senderName: 'Me',
+        message: 'Hello! Yes, it\'s still available.',
         timestamp: DateTime.now().subtract(
           const Duration(hours: 1, minutes: 55),
         ),
-        isMe: true,
+        isRead: true,
       ),
       ChatMessage(
-        id: '3',
-        text: 'Great! What condition is it in?',
+        messageId: '3',
+        conversationId: 'conv_1',
+        senderId: 'other_user',
+        senderName: 'John Smith',
+        message: 'Great! What condition is it in?',
         timestamp: DateTime.now().subtract(
           const Duration(hours: 1, minutes: 50),
         ),
-        isMe: false,
+        isRead: true,
       ),
       ChatMessage(
-        id: '4',
-        text: 'It\'s in Like New condition. I only used it for one semester.',
+        messageId: '4',
+        conversationId: 'conv_1',
+        senderId: 'current_user',
+        senderName: 'Me',
+        message:
+            'It\'s in Like New condition. I only used it for one semester.',
         timestamp: DateTime.now().subtract(
           const Duration(hours: 1, minutes: 45),
         ),
-        isMe: true,
+        isRead: true,
       ),
       ChatMessage(
-        id: '5',
-        text: 'Perfect! Is the book still available?',
+        messageId: '5',
+        conversationId: 'conv_1',
+        senderId: 'other_user',
+        senderName: 'John Smith',
+        message: 'Perfect! Is the book still available?',
         timestamp: DateTime.now().subtract(const Duration(minutes: 5)),
-        isMe: false,
+        isRead: false,
       ),
     ]);
   }
@@ -78,10 +94,13 @@ class _ChatPageState extends State<ChatPage> {
     setState(() {
       _messages.add(
         ChatMessage(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
-          text: _messageController.text.trim(),
+          messageId: DateTime.now().millisecondsSinceEpoch.toString(),
+          conversationId: 'conv_1',
+          senderId: 'current_user',
+          senderName: 'Me',
+          message: _messageController.text.trim(),
           timestamp: DateTime.now(),
-          isMe: true,
+          isRead: false,
         ),
       );
     });
@@ -105,11 +124,13 @@ class _ChatPageState extends State<ChatPage> {
     final conversation =
         widget.conversation ??
         ChatConversation(
-          id: '1',
-          userName: 'User',
-          userAvatar: 'U',
+          conversationId: '1',
+          otherUserId: 'user1',
+          otherUserName: 'User',
+          otherUserAvatar: 'U',
           lastMessage: '',
           lastMessageTime: DateTime.now(),
+          otherUserOnline: false,
         );
 
     return Scaffold(
@@ -124,8 +145,8 @@ class _ChatPageState extends State<ChatPage> {
         title: Row(
           children: [
             UserAvatarWithStatus(
-              userInitial: conversation.userAvatar,
-              isOnline: conversation.isOnline,
+              userInitial: conversation.otherUserAvatar,
+              isOnline: conversation.otherUserOnline,
               radius: 20,
             ),
             const SizedBox(width: 12),
@@ -134,14 +155,14 @@ class _ChatPageState extends State<ChatPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    conversation.userName,
+                    conversation.otherUserName,
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  if (conversation.isOnline)
+                  if (conversation.otherUserOnline)
                     const Text(
                       'Online',
                       style: TextStyle(color: Colors.green, fontSize: 12),
@@ -182,8 +203,8 @@ class _ChatPageState extends State<ChatPage> {
                   children: [
                     if (showTimestamp) _buildTimestamp(message.timestamp),
                     MessageBubble(
-                      text: message.text,
-                      isMe: message.isMe,
+                      text: message.message,
+                      isMe: message.isMe('current_user'),
                       timestamp:
                           '${message.timestamp.hour}:${message.timestamp.minute.toString().padLeft(2, '0')}',
                     ),

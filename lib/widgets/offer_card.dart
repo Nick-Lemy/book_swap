@@ -48,7 +48,7 @@ class OfferCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      offer.book.title,
+                      offer.bookTitle,
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 16,
@@ -59,7 +59,7 @@ class OfferCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      offer.book.author,
+                      offer.bookAuthor,
                       style: const TextStyle(
                         color: Colors.white60,
                         fontSize: 14,
@@ -68,8 +68,8 @@ class OfferCard extends StatelessWidget {
                     const SizedBox(height: 8),
                     Text(
                       isIncoming
-                          ? 'From: ${offer.fromUser}'
-                          : 'To: ${offer.toUser}',
+                          ? 'From: ${offer.fromUserName}'
+                          : 'To: ${offer.toUserName}',
                       style: const TextStyle(
                         color: Colors.white70,
                         fontSize: 13,
@@ -135,6 +135,8 @@ class OfferCard extends StatelessWidget {
         return Colors.green;
       case SwapStatus.rejected:
         return Colors.red;
+      case SwapStatus.cancelled:
+        return Colors.grey;
     }
   }
 

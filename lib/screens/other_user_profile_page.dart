@@ -18,7 +18,7 @@ class OtherUserProfilePage extends StatelessWidget {
           name: 'John Smith',
           email: 'john.smith@student.edu',
           avatar: 'J',
-          totalListings: 8,
+          activeListings: 8,
           completedSwaps: 12,
           memberSince: DateTime.now().subtract(const Duration(days: 365)),
           rating: 4.5,
@@ -114,7 +114,7 @@ class OtherUserProfilePage extends StatelessWidget {
                 children: [
                   Expanded(
                     child: _StatCard(
-                      value: '${profile.totalListings}',
+                      value: '${profile.activeListings}',
                       label: 'Active Listings',
                       icon: Icons.menu_book,
                     ),

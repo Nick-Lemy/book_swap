@@ -12,24 +12,33 @@ class SwapHistoryPage extends StatelessWidget {
     final List<SwapHistoryItem> swapHistory = [
       SwapHistoryItem(
         id: '1',
-        book: dummyBooks[0],
+        bookReceivedTitle: dummyBooks[0].title,
+        bookReceivedAuthor: dummyBooks[0].author,
+        bookReceivedImageUrl: dummyBooks[0].imageUrl,
+        bookGivenTitle: 'Computer Networks',
+        bookGivenAuthor: 'Andrew Tanenbaum',
         swappedWith: 'John Smith',
         swapDate: DateTime.now().subtract(const Duration(days: 7)),
-        myBookTitle: 'Computer Networks',
       ),
       SwapHistoryItem(
         id: '2',
-        book: dummyBooks[1],
+        bookReceivedTitle: dummyBooks[1].title,
+        bookReceivedAuthor: dummyBooks[1].author,
+        bookReceivedImageUrl: dummyBooks[1].imageUrl,
+        bookGivenTitle: 'Database Systems',
+        bookGivenAuthor: 'Ramez Elmasri',
         swappedWith: 'Alice Johnson',
         swapDate: DateTime.now().subtract(const Duration(days: 14)),
-        myBookTitle: 'Database Systems',
       ),
       SwapHistoryItem(
         id: '3',
-        book: dummyBooks[3],
+        bookReceivedTitle: dummyBooks[3].title,
+        bookReceivedAuthor: dummyBooks[3].author,
+        bookReceivedImageUrl: dummyBooks[3].imageUrl,
+        bookGivenTitle: 'Software Engineering Principles',
+        bookGivenAuthor: 'Robert Martin',
         swappedWith: 'Bob Wilson',
         swapDate: DateTime.now().subtract(const Duration(days: 30)),
-        myBookTitle: 'Software Engineering Principles',
       ),
     ];
 
@@ -125,8 +134,8 @@ class _SwapHistoryCard extends StatelessWidget {
               Expanded(
                 child: _BookInfo(
                   label: 'Received',
-                  bookTitle: item.book.title,
-                  bookAuthor: item.book.author,
+                  bookTitle: item.bookReceivedTitle,
+                  bookAuthor: item.bookReceivedAuthor,
                 ),
               ),
               Padding(
@@ -144,8 +153,8 @@ class _SwapHistoryCard extends StatelessWidget {
               Expanded(
                 child: _BookInfo(
                   label: 'Given',
-                  bookTitle: item.myBookTitle,
-                  bookAuthor: 'Your book',
+                  bookTitle: item.bookGivenTitle,
+                  bookAuthor: item.bookGivenAuthor,
                 ),
               ),
             ],

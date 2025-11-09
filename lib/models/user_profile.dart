@@ -3,7 +3,7 @@ class UserProfile {
   final String name;
   final String email;
   final String avatar;
-  final int totalListings;
+  final int activeListings;
   final int completedSwaps;
   final DateTime memberSince;
   final double rating;
@@ -13,9 +13,9 @@ class UserProfile {
     required this.name,
     required this.email,
     required this.avatar,
-    required this.totalListings,
-    required this.completedSwaps,
+    this.activeListings = 0,
+    this.completedSwaps = 0,
     required this.memberSince,
-    required this.rating,
+    this.rating = 0.0,
   });
 }
