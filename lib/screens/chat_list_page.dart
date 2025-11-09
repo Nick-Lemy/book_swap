@@ -72,14 +72,6 @@ class _ChatListPageState extends State<ChatListPage> {
       body: StreamBuilder<List<ChatConversation>>(
         stream: _chatService.getUserConversations(currentUser.uid),
         builder: (context, snapshot) {
-          print('📱 Chat List - Connection State: ${snapshot.connectionState}');
-          print('📱 Chat List - Has Data: ${snapshot.hasData}');
-          print('📱 Chat List - Data Length: ${snapshot.data?.length ?? 0}');
-          print('📱 Chat List - Has Error: ${snapshot.hasError}');
-          if (snapshot.hasError) {
-            print('❌ Chat List Error: ${snapshot.error}');
-          }
-
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
@@ -94,7 +86,6 @@ class _ChatListPageState extends State<ChatListPage> {
           }
 
           final conversations = snapshot.data ?? [];
-          print('📱 Conversations found: ${conversations.length}');
 
           if (conversations.isEmpty) {
             return const EmptyStateWidget(

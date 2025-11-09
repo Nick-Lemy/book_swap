@@ -20,24 +20,14 @@ class CloudinaryService {
   /// Pick image from gallery
   Future<XFile?> pickImageFromGallery() async {
     try {
-      print('Picking image from gallery...');
       final XFile? image = await _picker.pickImage(
         source: ImageSource.gallery,
         maxWidth: 1920,
         maxHeight: 1920,
         imageQuality: 85,
       );
-
-      if (image != null) {
-        print(
-          'Image picked successfully: ${image.name}, size: ${await image.length()} bytes',
-        );
-      } else {
-        print('No image was selected');
-      }
       return image;
     } catch (e) {
-      print('Error picking image: $e');
       return null;
     }
   }
@@ -54,7 +44,6 @@ class CloudinaryService {
 
       return image;
     } catch (e) {
-      print('Error taking photo: $e');
       return null;
     }
   }
@@ -90,7 +79,6 @@ class CloudinaryService {
 
       return response.secureUrl;
     } catch (e) {
-      print('Upload error: $e');
       throw Exception('Failed to upload image: ${e.toString()}');
     }
   }
@@ -126,21 +114,12 @@ class CloudinaryService {
 
       return response.secureUrl;
     } catch (e) {
-      print('Avatar upload error: $e');
       throw Exception('Failed to upload avatar: ${e.toString()}');
     }
   }
 
   /// Delete image from Cloudinary (optional - requires API credentials)
-  Future<void> deleteImage(String imageUrl) async {
-    try {
-      // Note: Deleting requires API credentials which are not used in public client
-      // For production, implement server-side deletion or use signed uploads
-      print('Image deletion requires server-side implementation: $imageUrl');
-    } catch (e) {
-      print('Delete error: $e');
-    }
-  }
+  Future<void> deleteImage(String imageUrl) async {}
 
   /// Show image picker dialog
   Future<XFile?> showImageSourceDialog(BuildContext context) async {

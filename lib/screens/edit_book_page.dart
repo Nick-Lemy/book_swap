@@ -96,12 +96,10 @@ class _EditBookPageState extends State<EditBookPage> {
 
         // Upload new image if selected
         if (_selectedImage != null) {
-          print('Uploading new image to Cloudinary...');
           imageUrl = await _cloudinaryService.uploadBookCover(
             _selectedImage!,
             widget.book.id,
           );
-          print('New image uploaded, URL: $imageUrl');
         }
 
         // Update book in Firestore
@@ -125,7 +123,6 @@ class _EditBookPageState extends State<EditBookPage> {
           Navigator.pop(context, true); // Return true to indicate success
         }
       } catch (e) {
-        print('Error updating book: $e');
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(

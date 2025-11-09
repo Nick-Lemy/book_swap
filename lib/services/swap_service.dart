@@ -174,12 +174,6 @@ class SwapService {
   // Create chat conversation for swap
   Future<void> _createSwapChat(Map<String, dynamic> offerData) async {
     try {
-      print('🔄 Creating swap chat...');
-      print('Requester ID: ${offerData['requesterId']}');
-      print('Owner ID: ${offerData['ownerId']}');
-      print('Requester Name: ${offerData['requesterName']}');
-      print('Owner Name: ${offerData['ownerName']}');
-
       // Get user profiles to get avatars
       final ownerProfile = await _userService.getUserProfile(
         offerData['ownerId'],
@@ -195,8 +189,6 @@ class SwapService {
         ownerProfile?.avatar ?? '📚',
       );
 
-      print('✅ Conversation created/found: $conversationId');
-
       // Send an automatic message about the swap
       await _chatService.sendMessage(
         conversationId: conversationId,
@@ -205,12 +197,8 @@ class SwapService {
         message:
             '🎉 Swap accepted! You\'re exchanging "${offerData['offeredBookTitle']}" for "${offerData['requestedBookTitle']}". Let\'s arrange the details!',
       );
-
-      print('✅ Chat conversation created successfully: $conversationId');
     } catch (e) {
-      // Don't throw error - chat creation is not critical
-      print('❌ Error creating swap chat: $e');
-      print('Stack trace: ${StackTrace.current}');
+      throw 'Error creating swap chat: $e';
     }
   }
 

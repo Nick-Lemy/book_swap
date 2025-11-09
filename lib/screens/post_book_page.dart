@@ -46,16 +46,11 @@ class _PostBookPageState extends State<PostBookPage> {
   }
 
   Future<void> _pickImage() async {
-    print('Opening image picker dialog...');
     final result = await _cloudinaryService.showImageSourceDialog(context);
-    print('Image picker result: ${result?.path ?? "null"}');
     if (result != null) {
       setState(() {
         _selectedImage = result;
       });
-      print('Image set successfully: ${result.name}');
-    } else {
-      print('No image selected');
     }
   }
 
@@ -89,23 +84,15 @@ class _PostBookPageState extends State<PostBookPage> {
           ownerEmail: currentUser.email ?? '',
         );
 
-        print('Book created with ID: $bookId');
-
         // Upload image to Cloudinary if selected
         if (_selectedImage != null) {
-          print('Uploading image to Cloudinary...');
           final imageUrl = await _cloudinaryService.uploadBookCover(
             _selectedImage!,
             bookId,
           );
 
-          print('Image uploaded, URL: $imageUrl');
-
           // Update book with image URL
           await _bookService.updateBook(bookId: bookId, imageUrl: imageUrl);
-          print('Book updated with image URL');
-        } else {
-          print('No image selected');
         }
 
         if (mounted) {
@@ -118,7 +105,6 @@ class _PostBookPageState extends State<PostBookPage> {
           Navigator.pop(context);
         }
       } catch (e) {
-        print('Error posting book: $e');
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -204,9 +190,6 @@ class _PostBookPageState extends State<PostBookPage> {
                                   );
                                 }
                                 if (snapshot.hasError) {
-                                  print(
-                                    'Error loading image: ${snapshot.error}',
-                                  );
                                   return Center(
                                     child: Column(
                                       mainAxisAlignment:
@@ -238,9 +221,6 @@ class _PostBookPageState extends State<PostBookPage> {
                                   );
                                 }
                                 if (snapshot.hasData) {
-                                  print(
-                                    'Image loaded successfully: ${snapshot.data!.length} bytes',
-                                  );
                                   return Stack(
                                     children: [
                                       Image.memory(
