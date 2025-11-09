@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class PrimaryButton extends StatelessWidget {
   final String text;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final bool fullWidth;
   static const Color _accent = Color(0xFFF1C64A);
 
