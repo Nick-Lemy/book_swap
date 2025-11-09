@@ -11,7 +11,6 @@ import 'package:book_swap/screens/chat_list_page.dart';
 import 'package:book_swap/screens/swap_history_page.dart';
 import 'package:book_swap/screens/other_user_profile_page.dart';
 import 'package:book_swap/screens/email_verification_page.dart';
-import 'package:book_swap/screens/edit_book_page.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
