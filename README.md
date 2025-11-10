@@ -132,26 +132,26 @@ service cloud.firestore {
 npm install -g firebase-tools
 ```
 
-2.Login to Firebase:
+2. Login to Firebase:
 
 ```bash
 firebase login
 ```
 
-3.Install FlutterFire CLI:
+3. Install FlutterFire CLI:
 
 ```bash
 dart pub global activate flutterfire_cli
 ```
 
-4.Configure Firebase for your Flutter project:
+4. Configure Firebase for your Flutter project:
 
 ```bash
 cd /path/to/book_swap
 flutterfire configure
 ```
 
-5.Select your Firebase project and platforms (Android, iOS, Web)
+5. Select your Firebase project and platforms (Android, iOS, Web)
 
 This will generate `firebase_options.dart` automatically.
 
