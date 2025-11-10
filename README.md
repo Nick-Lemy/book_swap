@@ -308,5 +308,3 @@ This app uses the Provider pattern for state management:
 - **BookProvider**: Handles book listings, filtering, and CRUD operations
 - **SwapProvider**: Manages swap offers and their states
 - **ChatProvider**: Handles conversations and messaging
-
-All providers listen to Firebase Firestore streams for real-time updates.
